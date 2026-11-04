@@ -1,0 +1,168 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  border-bottom: 1px solid rgba(230, 223, 212, 0.8);
+  background: rgba(246, 242, 234, 0.84);
+  backdrop-filter: blur(14px);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  width: 100%;
+  max-width: 1120px;
+  min-height: 72px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.brand {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 11px;
+}
+
+.mark {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--color-accent) 0%, #ff8a5c 100%);
+  color: #fff;
+  font-size: 19px;
+  font-weight: 700;
+  box-shadow: 0 8px 18px -10px rgba(242, 84, 45, 0.9);
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.brandName {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.brandTag {
+  color: var(--color-muted);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.navLink {
+  position: relative;
+  padding: 8px 12px;
+  border-radius: 999px;
+  color: var(--color-muted);
+  font-size: 14px;
+  font-weight: 600;
+  transition: color 0.18s ease, background-color 0.18s ease;
+}
+
+.navLink:hover {
+  background: rgba(255, 255, 255, 0.65);
+  color: var(--color-ink);
+}
+
+.navLink[aria-current="page"] {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  box-shadow: 0 1px 2px rgba(29, 27, 25, 0.06);
+}
+
+.navLink[aria-current="page"]::after {
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  width: 14px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--color-accent);
+  content: "";
+  transform: translateX(-50%);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: auto;
+}
+
+.taskIndicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 11px;
+  border: 1px solid rgba(47, 125, 95, 0.16);
+  border-radius: 999px;
+  background: rgba(47, 125, 95, 0.08);
+  color: var(--color-success);
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-success);
+  box-shadow: 0 0 0 3px rgba(47, 125, 95, 0.14);
+}
+
+@media (max-width: 880px) {
+  .inner {
+    gap: 18px;
+  }
+
+  .brandTag {
+    display: none;
+  }
+
+  .taskIndicator {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .inner {
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    min-height: 0;
+    padding: 12px 16px;
+  }
+
+  .nav {
+    order: 3;
+    width: 100%;
+  }
+
+  .actions {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 420px) {
+  .brandName {
+    font-size: 15px;
+  }
+
+  .navLink {
+    padding: 7px 10px;
+  }
+}
