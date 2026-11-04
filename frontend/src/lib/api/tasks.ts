@@ -1,5 +1,7 @@
 import type { ActiveTaskListResponse, TaskDTO, TaskListResponse } from "@/lib/types";
 
+import { request } from "./client";
+
 export interface SubmitTaskInput {
   templateId: string;
   assetIds: number[];
@@ -21,13 +23,17 @@ export interface ListTasksOptions {
   signal?: AbortSignal;
 }
 
-/**
- * F3 / M8 实现：POST /api/tasks（202 + TaskDTO）。
- * F1 只保留函数签名。
- */
+/** POST /api/tasks：返回 202 + TaskDTO；任务展示与轮询由 F3 接入。 */
 export function submitTask(input: SubmitTaskInput): Promise<TaskDTO> {
-  void input;
-  return Promise.reject(new Error("submitTask 将在 F3（M8）中实现"));
+  return request<TaskDTO>("/api/tasks", {
+    method: "POST",
+    body: {
+      templateId: input.templateId,
+      assetIds: input.assetIds,
+    },
+    userId: input.userId,
+    signal: input.signal,
+  });
 }
 
 /** F3 / M8 实现：GET /api/tasks/{id}（只读，不推进任务）。 */

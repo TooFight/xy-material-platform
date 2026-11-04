@@ -1,6 +1,12 @@
 import { vi } from "vitest";
 
-import type { TemplateCategory, TemplateSummary } from "@/lib/types";
+import type {
+  AssetDTO,
+  TaskDTO,
+  TemplateCategory,
+  TemplateDetail,
+  TemplateSummary,
+} from "@/lib/types";
 
 export const categories: TemplateCategory[] = [
   { code: "creative", name: "创意图片", templateCount: 2 },
@@ -33,6 +39,46 @@ export const springCard: TemplateSummary = {
 
 export const allTemplates: TemplateSummary[] = [travelPostcard, comic];
 export const festivalTemplates: TemplateSummary[] = [springCard];
+
+export const travelPostcardDetail: TemplateDetail = {
+  ...travelPostcard,
+  description: "上传图片，模拟生成一张明信片",
+  acceptedMimeTypes: ["image/jpeg", "image/png"],
+  // 测试里用 1KB 上限，方便构造超限文件。
+  maxFileSizeBytes: 1024,
+};
+
+export function makeAsset(id: number, templateId = "demo-postcard"): AssetDTO {
+  return {
+    id,
+    templateId,
+    originalFilename: `beach-${id}.jpg`,
+    mimeType: "image/jpeg",
+    sizeBytes: 512,
+    url: `/files/assets/${id}.jpg`,
+    createdAt: "2026-11-04T08:30:12.345Z",
+  };
+}
+
+export function makeTask(id = 42): TaskDTO {
+  return {
+    id,
+    templateId: "demo-postcard",
+    templateTitle: "旅行明信片",
+    templateCoverUrl: "/demo/covers/postcard.png",
+    status: "PENDING",
+    stage: null,
+    failedStage: null,
+    failureReason: null,
+    resultUrl: null,
+    assets: [],
+    stages: [],
+    createdAt: "2026-11-04T08:30:15.000Z",
+    startedAt: null,
+    finishedAt: null,
+    updatedAt: "2026-11-04T08:30:15.000Z",
+  };
+}
 
 export function jsonResponse(body: unknown, init: ResponseInit = {}): Response {
   return new Response(JSON.stringify(body), {

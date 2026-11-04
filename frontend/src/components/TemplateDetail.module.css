@@ -1,0 +1,267 @@
+.detail {
+  width: 100%;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 22px;
+  color: var(--color-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.backLink:hover {
+  color: var(--color-accent-strong);
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
+  gap: clamp(24px, 4vw, 48px);
+  align-items: start;
+  margin-bottom: 38px;
+}
+
+.coverFrame {
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--color-line);
+  border-radius: 24px;
+  background: linear-gradient(135deg, #f4e8d9, #e8eef0);
+  box-shadow: var(--shadow-card);
+}
+
+.cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.info {
+  padding-top: 6px;
+}
+
+.category {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-strong);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.title {
+  margin: 14px 0 0;
+  font-size: clamp(30px, 4vw, 44px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.12;
+}
+
+.description {
+  margin: 16px 0 0;
+  color: var(--color-muted);
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.requirements {
+  display: grid;
+  gap: 10px;
+  margin: 26px 0 0;
+}
+
+.requirement {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.requirement dt {
+  color: var(--color-muted);
+  font-size: 12.5px;
+}
+
+.requirement dd {
+  margin: 0;
+  font-size: 13.5px;
+  font-weight: 700;
+}
+
+.statePanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 72px 24px;
+  border: 1px dashed var(--color-line);
+  border-radius: var(--radius-card);
+  background: rgba(255, 255, 255, 0.55);
+  text-align: center;
+}
+
+.stateMark {
+  display: grid;
+  min-width: 52px;
+  height: 52px;
+  place-items: center;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-strong);
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.stateTitle {
+  margin: 6px 0 0;
+  font-size: 22px;
+}
+
+.stateText {
+  max-width: 46ch;
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.stateActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.primaryButton,
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  padding: 9px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-ink);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.primaryButton:hover {
+  background: #000;
+}
+
+.secondaryButton {
+  border: 1px solid var(--color-line);
+  background: var(--color-surface);
+  color: var(--color-ink);
+}
+
+.secondaryButton:hover {
+  border-color: var(--color-accent);
+}
+
+.skeletonBack {
+  width: 120px;
+  height: 14px;
+  margin-bottom: 22px;
+  border-radius: 6px;
+  background: #efe9df;
+}
+
+.skeletonCover {
+  background: linear-gradient(100deg, #efe9df 30%, #f8f5ef 50%, #efe9df 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+.skeletonLineShort,
+.skeletonLineWide,
+.skeletonTitle,
+.skeletonRequirements,
+.skeletonSlot {
+  display: block;
+  border-radius: 6px;
+  background: #efe9df;
+}
+
+.skeletonLineShort {
+  width: 70px;
+  height: 12px;
+}
+
+.skeletonTitle {
+  width: 70%;
+  height: 38px;
+  margin-top: 14px;
+  border-radius: 10px;
+}
+
+.skeletonLineWide {
+  width: 100%;
+  height: 13px;
+  margin-top: 14px;
+}
+
+.skeletonLineWide + .skeletonLineWide {
+  width: 86%;
+  margin-top: 8px;
+}
+
+.skeletonRequirements {
+  height: 118px;
+  margin-top: 26px;
+  border-radius: 12px;
+}
+
+.skeletonSlots {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr));
+  gap: 18px;
+}
+
+.skeletonSlot {
+  aspect-ratio: 4 / 3;
+  border-radius: 16px;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  .coverFrame {
+    aspect-ratio: 16 / 10;
+  }
+
+  .title {
+    font-size: 30px;
+  }
+
+  .statePanel {
+    padding: 52px 18px;
+  }
+}

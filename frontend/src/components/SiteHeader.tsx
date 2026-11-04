@@ -32,7 +32,7 @@ export function SiteHeader() {
           {NAV_ITEMS.map((item) => {
             const isActive =
               item.href === "/"
-                ? pathname === "/"
+                ? pathname === "/" || pathname.startsWith("/templates/")
                 : pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (
               <Link

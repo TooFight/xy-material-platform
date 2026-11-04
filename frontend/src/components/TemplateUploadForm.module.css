@@ -1,0 +1,130 @@
+.form {
+  padding-top: 28px;
+  border-top: 1px solid var(--color-line);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--color-accent-strong);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.heading {
+  margin: 0;
+  font-size: clamp(22px, 3vw, 28px);
+  letter-spacing: -0.01em;
+}
+
+.progress {
+  margin: 0;
+  padding: 6px 12px;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.slotGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr));
+  gap: 18px;
+  margin: 0;
+  padding: 0;
+}
+
+.identityHint {
+  margin: 14px 0 0;
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+.submitError {
+  margin: 16px 0 0;
+  padding: 10px 14px;
+  border: 1px solid rgba(210, 60, 30, 0.2);
+  border-radius: 10px;
+  background: rgba(242, 84, 45, 0.07);
+  color: var(--color-accent-strong);
+  font-size: 13px;
+}
+
+.submitBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 24px;
+  padding: 18px;
+  border: 1px solid var(--color-line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.submitInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  color: var(--color-ink);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.submitHint {
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.success {
+  color: var(--color-success);
+}
+
+.submitButton {
+  flex-shrink: 0;
+  min-height: 42px;
+  padding: 10px 22px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-ink);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 700;
+  transition: background-color 0.18s ease, opacity 0.18s ease;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: #000;
+}
+
+.submitButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+@media (max-width: 768px) {
+  .slotGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .submitBar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .submitButton {
+    width: 100%;
+  }
+}

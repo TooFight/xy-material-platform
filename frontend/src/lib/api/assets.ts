@@ -1,5 +1,7 @@
 import type { AssetDTO } from "@/lib/types";
 
+import { request } from "./client";
+
 export interface UploadAssetInput {
   templateId: string;
   file: File;
@@ -8,10 +10,18 @@ export interface UploadAssetInput {
 }
 
 /**
- * F2 / M7 实现：POST /api/assets（multipart/form-data）。
- * F1 只保留函数签名，避免详情页提前接入半成品上传逻辑。
+ * POST /api/assets：每个上传位单独上传一张图片。
+ * 由浏览器自动设置 multipart boundary，client 不会覆盖 Content-Type。
  */
 export function uploadAsset(input: UploadAssetInput): Promise<AssetDTO> {
-  void input;
-  return Promise.reject(new Error("uploadAsset 将在 F2（M7）中实现"));
+  const body = new FormData();
+  body.append("templateId", input.templateId);
+  body.append("file", input.file);
+
+  return request<AssetDTO>("/api/assets", {
+    method: "POST",
+    body,
+    userId: input.userId,
+    signal: input.signal,
+  });
 }
