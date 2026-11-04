@@ -46,4 +46,12 @@ public class ApiException extends RuntimeException {
     public static ApiException validation(String message) {
         return new ApiException(HttpStatus.BAD_REQUEST, ErrorCodes.VALIDATION_ERROR, message);
     }
+
+    public static ApiException fileTooLarge(String message) {
+        return new ApiException(HttpStatus.PAYLOAD_TOO_LARGE, ErrorCodes.FILE_TOO_LARGE, message);
+    }
+
+    public static ApiException unsupportedFileType(String message) {
+        return new ApiException(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ErrorCodes.UNSUPPORTED_FILE_TYPE, message);
+    }
 }

@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
@@ -49,6 +52,27 @@ public class GlobalExceptionHandler {
     })
     public ResponseEntity<ApiError> handleBadRequest(Exception exception) {
         return badRequest(new ApiError(ErrorCodes.VALIDATION_ERROR, messageFor(exception), null));
+    }
+
+    @ExceptionHandler(MissingServletRequestPartException.class)
+    public ResponseEntity<ApiError> handleMissingPart(MissingServletRequestPartException exception) {
+        return badRequest(new ApiError(ErrorCodes.VALIDATION_ERROR,
+                "缺少必需的上传字段: " + exception.getRequestPartName(), null));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiError> handleMaxUploadSize(MaxUploadSizeExceededException exception) {
+        long maxUploadSize = exception.getMaxUploadSize();
+        String message = maxUploadSize > 0
+                ? "上传文件超过大小上限（" + maxUploadSize + " 字节）"
+                : "上传文件超过大小上限";
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(new ApiError(ErrorCodes.FILE_TOO_LARGE, message, null));
+    }
+
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<ApiError> handleMultipart(MultipartException exception) {
+        return badRequest(new ApiError(ErrorCodes.VALIDATION_ERROR, "请求必须是 multipart/form-data", null));
     }
 
     @ExceptionHandler({NoResourceFoundException.class, NoHandlerFoundException.class})
