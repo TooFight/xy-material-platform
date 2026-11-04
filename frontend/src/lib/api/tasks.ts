@@ -23,7 +23,7 @@ export interface ListTasksOptions {
   signal?: AbortSignal;
 }
 
-/** POST /api/tasks：返回 202 + TaskDTO；任务展示与轮询由 F3 接入。 */
+/** POST /api/tasks：返回 202 + TaskDTO；任务展示与轮询由 TaskProvider 接入。 */
 export function submitTask(input: SubmitTaskInput): Promise<TaskDTO> {
   return request<TaskDTO>("/api/tasks", {
     method: "POST",
@@ -36,14 +36,44 @@ export function submitTask(input: SubmitTaskInput): Promise<TaskDTO> {
   });
 }
 
-/** F3 / M8 实现：GET /api/tasks/{id}（只读，不推进任务）。 */
+/** GET /api/tasks/{id}：只读查询，不推进任务。 */
 export function getTask(options: GetTaskOptions): Promise<TaskDTO> {
-  void options;
-  return Promise.reject(new Error("getTask 将在 F3（M8）中实现"));
+  return request<TaskDTO>(`/api/tasks/${options.taskId}`, {
+    userId: options.userId,
+    signal: options.signal,
+  });
 }
 
-/** F3 / M8 实现：GET /api/tasks（分页历史或 active=true 恢复跟踪）。 */
-export function listTasks(options: ListTasksOptions): Promise<TaskListResponse | ActiveTaskListResponse> {
-  void options;
-  return Promise.reject(new Error("listTasks 将在 F3（M8）中实现"));
+export function listTasks(
+  options: ListTasksOptions & { active: true },
+): Promise<ActiveTaskListResponse>;
+export function listTasks(
+  options: ListTasksOptions & { active?: false },
+): Promise<TaskListResponse>;
+export function listTasks(
+  options: ListTasksOptions,
+): Promise<TaskListResponse | ActiveTaskListResponse>;
+export function listTasks(
+  options: ListTasksOptions,
+): Promise<TaskListResponse | ActiveTaskListResponse> {
+  const params = new URLSearchParams();
+  if (options.active) {
+    params.set("active", "true");
+  } else {
+    if (options.page !== undefined) {
+      params.set("page", String(options.page));
+    }
+    if (options.size !== undefined) {
+      params.set("size", String(options.size));
+    }
+  }
+
+  const query = params.toString();
+  return request<TaskListResponse | ActiveTaskListResponse>(
+    `/api/tasks${query ? `?${query}` : ""}`,
+    {
+      userId: options.userId,
+      signal: options.signal,
+    },
+  );
 }

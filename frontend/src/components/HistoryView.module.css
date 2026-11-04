@@ -1,0 +1,212 @@
+.view {
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 26px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  color: var(--color-accent-strong);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(30px, 4vw, 44px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.12;
+}
+
+.lede {
+  margin: 12px 0 0;
+  color: var(--color-muted);
+  font-size: 14.5px;
+  line-height: 1.7;
+}
+
+.count {
+  padding: 6px 12px;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.list {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  list-style: none;
+}
+
+.loading {
+  position: relative;
+}
+
+.skeletonCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--color-line);
+  border-radius: 18px;
+  background: var(--color-surface);
+  list-style: none;
+}
+
+.skeletonTitle,
+.skeletonLine,
+.skeletonBlock {
+  display: block;
+  border-radius: 8px;
+  background: linear-gradient(100deg, #efe9df 30%, #f8f5ef 50%, #efe9df 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+.skeletonTitle {
+  width: 35%;
+  height: 16px;
+}
+
+.skeletonLine {
+  width: 60%;
+  height: 11px;
+}
+
+.skeletonBlock {
+  width: 100%;
+  height: 76px;
+  border-radius: 12px;
+}
+
+.statePanel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 68px 24px;
+  border: 1px dashed var(--color-line);
+  border-radius: var(--radius-card);
+  background: rgba(255, 255, 255, 0.55);
+  text-align: center;
+}
+
+.stateMark {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  margin-bottom: 6px;
+  border-radius: 50%;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-strong);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.stateTitle {
+  margin: 0;
+  font-size: 20px;
+}
+
+.stateText {
+  max-width: 44ch;
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.primaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  margin-top: 8px;
+  padding: 9px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-ink);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.primaryButton:hover {
+  background: #000;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.pageButton {
+  min-height: 36px;
+  padding: 7px 15px;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.pageButton:hover:not(:disabled) {
+  border-color: var(--color-accent);
+}
+
+.pageButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.pageInfo {
+  color: var(--color-muted);
+  font-size: 12.5px;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .header {
+    margin-bottom: 20px;
+    padding-bottom: 18px;
+  }
+
+  .title {
+    font-size: 30px;
+  }
+}

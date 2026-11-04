@@ -6,8 +6,10 @@ import { useCallback, useEffect, useState } from "react";
 import { ApiError, assetUrl, isAbortError, toApiError } from "@/lib/api/client";
 import { getTemplate } from "@/lib/api/templates";
 import type { TaskDTO, TemplateDetail as TemplateDetailDTO } from "@/lib/types";
+import type { TaskEntry } from "@/lib/tasks/taskReducer";
 import { formatFileSize, formatMimeTypes } from "@/lib/upload/fileValidation";
 
+import { TaskCard } from "./TaskCard";
 import { TemplateUploadForm } from "./TemplateUploadForm";
 import styles from "./TemplateDetail.module.css";
 
@@ -23,11 +25,20 @@ interface DetailState {
 export interface TemplateDetailProps {
   templateId: string;
   userId: number | null;
-  /** F3 接入任务展示的入口；F2 默认不传。 */
+  /** 提交成功后由路由层 addTask，并把任务加入本页 session 列表。 */
   onSubmitted?: (task: TaskDTO) => void;
+  /** 本页本次会话提交的任务，按最新在前。 */
+  submittedTasks?: TaskEntry[];
+  onRetryTask?: (taskId: number) => void;
 }
 
-export function TemplateDetail({ templateId, userId, onSubmitted }: TemplateDetailProps) {
+export function TemplateDetail({
+  templateId,
+  userId,
+  onSubmitted,
+  submittedTasks,
+  onRetryTask,
+}: TemplateDetailProps) {
   const [state, setState] = useState<DetailState>(() => ({
     templateId,
     status: "loading",
@@ -141,6 +152,26 @@ export function TemplateDetail({ templateId, userId, onSubmitted }: TemplateDeta
         userId={userId}
         onSubmitted={onSubmitted}
       />
+
+      {submittedTasks && submittedTasks.length > 0 && (
+        <section className={styles.sessionTasks} aria-labelledby="session-tasks-heading">
+          <div className={styles.sessionHeader}>
+            <h2 id="session-tasks-heading" className={styles.sessionTitle}>
+              本次提交的任务
+            </h2>
+            <p className={styles.sessionHint}>任务状态会自动更新。</p>
+          </div>
+          <div className={styles.sessionList}>
+            {submittedTasks.map((entry) => (
+              <TaskCard
+                key={entry.task.id}
+                entry={entry}
+                onRetry={onRetryTask ?? (() => undefined)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
     </article>
   );
 }

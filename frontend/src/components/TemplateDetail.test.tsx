@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { TaskDTO } from "@/lib/types";
+import { createTaskEntry } from "@/lib/tasks/taskReducer";
 import {
   deferred,
   installFetch,
@@ -258,16 +259,76 @@ describe("TemplateDetail", () => {
     });
 
     await waitFor(() => expect(onSubmitted).toHaveBeenCalledWith(task));
-    expect(await screen.findByText("任务已提交，编号 #42。")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "已提交" })).toBeDisabled();
+    await waitFor(() => expect(screen.getByText("0 / 2 已上传")).toBeInTheDocument());
+    expect(screen.getByRole("button", { name: "提交制作任务" })).toBeDisabled();
+    expect(screen.getByLabelText("上传第 1 张图片")).toBeInTheDocument();
     expect(submittedBody).toEqual({
       templateId: "demo-postcard",
       assetIds: [101, 102],
     });
   });
 
-  it("模板不存在时显示专门的提示并返回列表", async () => {
+  it("提交成功后清空上传位，可以连续提交多个任务", async () => {
+    const user = userEvent.setup();
+    let uploadCalls = 0;
+    let submitCalls = 0;
+    const submittedTasks: TaskDTO[] = [];
+
     installDetailFetch({
+      upload: () => {
+        uploadCalls += 1;
+        return Promise.resolve(jsonResponse(makeAsset(100 + uploadCalls), { status: 201 }));
+      },
+      submit: () => {
+        submitCalls += 1;
+        return Promise.resolve(jsonResponse(makeTask(41 + submitCalls), { status: 202 }));
+      },
+    });
+
+    renderDetail({ onSubmitted: (task) => submittedTasks.push(task) });
+    await screen.findByRole("heading", { name: "旅行明信片", level: 1 });
+
+    const uploadPair = async () => {
+      await user.upload(screen.getByLabelText("上传第 1 张图片"), pngFile("first.png"));
+      await waitFor(() => expect(screen.getByText("1 / 2 已上传")).toBeInTheDocument());
+      await user.upload(screen.getByLabelText("上传第 2 张图片"), pngFile("second.png"));
+      await waitFor(() => expect(screen.getByText("2 / 2 已上传")).toBeInTheDocument());
+    };
+
+    await uploadPair();
+    await user.click(screen.getByRole("button", { name: "提交制作任务" }));
+    await waitFor(() => expect(submittedTasks).toHaveLength(1));
+    await waitFor(() => expect(screen.getByText("0 / 2 已上传")).toBeInTheDocument());
+
+    await uploadPair();
+    await user.click(screen.getByRole("button", { name: "提交制作任务" }));
+    await waitFor(() => expect(submittedTasks).toHaveLength(2));
+
+    expect(submittedTasks.map((task) => task.id)).toEqual([42, 43]);
+    expect(submitCalls).toBe(2);
+  });
+
+  it("有 submittedTasks 时显示本页会话任务卡片", async () => {
+    installDetailFetch();
+    const entry = createTaskEntry(
+      makeTask(42, { status: "RUNNING", stage: "CHECKING" }),
+    );
+
+    render(
+      <TemplateDetail
+        templateId="demo-postcard"
+        userId={1}
+        submittedTasks={[entry]}
+        onRetryTask={() => undefined}
+      />,
+    );
+
+    await screen.findByRole("heading", { name: "旅行明信片", level: 1 });
+    expect(await screen.findByText("本次提交的任务")).toBeInTheDocument();
+    expect(screen.getByLabelText("素材检查：进行中")).toBeInTheDocument();
+  });
+
+  it("模板不存在时显示专门的提示并返回列表", async () => {    installDetailFetch({
       template: () =>
         Promise.resolve(
           jsonResponse({ code: "NOT_FOUND", message: "模板不存在" }, { status: 404 }),

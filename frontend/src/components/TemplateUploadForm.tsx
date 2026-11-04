@@ -30,7 +30,6 @@ export function TemplateUploadForm({ template, userId, onSubmitted }: TemplateUp
   );
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<ApiError | null>(null);
-  const [submittedTask, setSubmittedTask] = useState<TaskDTO | null>(null);
 
   const controllersRef = useRef<Array<AbortController | null>>([]);
   const submitControllerRef = useRef<AbortController | null>(null);
@@ -154,13 +153,28 @@ export function TemplateUploadForm({ template, userId, onSubmitted }: TemplateUp
     dispatch({ type: "clear", index });
   };
 
+  // 202 受理后清空上传位、释放预览，表单恢复可用，可连续提交下一个任务。
+  const resetSlots = () => {
+    for (const controller of controllersRef.current) {
+      controller?.abort();
+    }
+    controllersRef.current = [];
+    for (const slot of slots) {
+      if (slot.previewUrl) {
+        URL.revokeObjectURL(slot.previewUrl);
+      }
+    }
+    dispatch({ type: "reset", count: template.requiredImageCount });
+    setSubmitError(null);
+  };
+
   const uploadedCount = slots.filter(
     (slot) => slot.status === "uploaded" && slot.asset !== null,
   ).length;
   const allReady = slots.length > 0 && uploadedCount === slots.length;
   const remaining = slots.length - uploadedCount;
-  const inputsDisabled = userId === null || submitting || submittedTask !== null;
-  const canSubmit = allReady && userId !== null && !submitting && submittedTask === null;
+  const inputsDisabled = userId === null || submitting;
+  const canSubmit = allReady && userId !== null && !submitting;
 
   const handleSubmit = () => {
     if (!canSubmit || userId === null) {
@@ -190,7 +204,7 @@ export function TemplateUploadForm({ template, userId, onSubmitted }: TemplateUp
         if (controller.signal.aborted) {
           return;
         }
-        setSubmittedTask(task);
+        resetSlots();
         onSubmitted?.(task);
       })
       .catch((error: unknown) => {
@@ -253,16 +267,12 @@ export function TemplateUploadForm({ template, userId, onSubmitted }: TemplateUp
 
       <div className={styles.submitBar}>
         <div className={styles.submitInfo} aria-live="polite">
-          {submittedTask ? (
-            <span className={styles.success}>任务已提交，编号 #{submittedTask.id}。</span>
-          ) : allReady ? (
+          {allReady ? (
             <span>素材已就绪，可以提交。</span>
           ) : (
             <span>还缺 {remaining} 张图片。</span>
           )}
-          {!allReady && !submittedTask && (
-            <span className={styles.submitHint}>全部上传完成后才能提交。</span>
-          )}
+          {!allReady && <span className={styles.submitHint}>全部上传完成后才能提交。</span>}
         </div>
         <button
           type="button"
@@ -270,7 +280,7 @@ export function TemplateUploadForm({ template, userId, onSubmitted }: TemplateUp
           onClick={handleSubmit}
           disabled={!canSubmit}
         >
-          {submitting ? "提交中…" : submittedTask ? "已提交" : "提交制作任务"}
+          {submitting ? "提交中…" : "提交制作任务"}
         </button>
       </div>
     </section>

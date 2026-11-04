@@ -60,7 +60,7 @@ export function makeAsset(id: number, templateId = "demo-postcard"): AssetDTO {
   };
 }
 
-export function makeTask(id = 42): TaskDTO {
+export function makeTask(id = 42, overrides: Partial<TaskDTO> = {}): TaskDTO {
   return {
     id,
     templateId: "demo-postcard",
@@ -77,6 +77,7 @@ export function makeTask(id = 42): TaskDTO {
     startedAt: null,
     finishedAt: null,
     updatedAt: "2026-11-04T08:30:15.000Z",
+    ...overrides,
   };
 }
 

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { SiteHeader } from "@/components/SiteHeader";
+import { TaskProviderBoundary } from "@/lib/tasks/TaskProvider";
 import { UserProvider } from "@/lib/user/UserProvider";
 
 import "./globals.css";
@@ -19,8 +20,10 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
     <html lang="zh-CN">
       <body>
         <UserProvider>
-          <SiteHeader />
-          {children}
+          <TaskProviderBoundary>
+            <SiteHeader />
+            {children}
+          </TaskProviderBoundary>
         </UserProvider>
       </body>
     </html>
