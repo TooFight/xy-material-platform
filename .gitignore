@@ -1,0 +1,17 @@
+# Secrets / local config
+.mcp.json
+.env
+*.local
+
+# Dependencies and build output
+node_modules/
+.next/
+target/
+
+# Runtime data
+uploads/
+.DS_Store
+
+# Local tooling and exam prompt
+.claude/
+题目.md
