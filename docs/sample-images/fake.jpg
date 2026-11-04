@@ -1,0 +1,5 @@
+这不是一张图片。
+
+This is a plain-text file renamed to fake.jpg on purpose.
+It is used to demonstrate that upload validation reads magic numbers,
+not the file extension or the browser-provided Content-Type.
