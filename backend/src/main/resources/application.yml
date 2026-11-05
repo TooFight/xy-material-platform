@@ -42,6 +42,10 @@ app:
     fail-stage: ${APP_SIMULATION_FAIL_STAGE:NONE}
     stage-delay-ms: ${APP_SIMULATION_STAGE_DELAY_MS:3000}
     dev-api-enabled: ${APP_SIMULATION_DEV_API_ENABLED:false}
+  task-executor:
+    core-size: ${APP_TASK_EXECUTOR_CORE_SIZE:2}
+    max-size: ${APP_TASK_EXECUTOR_MAX_SIZE:2}
+    queue-capacity: ${APP_TASK_EXECUTOR_QUEUE_CAPACITY:100}
 
 logging:
   level:

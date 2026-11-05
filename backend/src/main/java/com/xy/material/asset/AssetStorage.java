@@ -13,6 +13,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,10 +31,12 @@ public class AssetStorage {
 
     private final Path root;
     private final Path assetsRoot;
+    private final Path resultsRoot;
 
     public AssetStorage(StorageProperties properties) {
         this.root = properties.root();
         this.assetsRoot = root.resolve("assets").normalize();
+        this.resultsRoot = root.resolve("results").normalize();
     }
 
     public StoredFile store(MultipartFile file, ImageFileType type) {
@@ -109,6 +112,57 @@ public class AssetStorage {
             return realTarget;
         } catch (IOException exception) {
             throw notFound();
+        }
+    }
+
+    /**
+     * B3 CHECKING 使用：素材存储路径是否存在且安全。
+     */
+    public boolean exists(String storageKey) {
+        try {
+            resolveFile(storageKey);
+            return true;
+        } catch (ApiException exception) {
+            return false;
+        }
+    }
+
+    /**
+     * B3 FINALIZING 使用：把模板的 classpath 示例结果图复制到 results/{uuid}.png，
+     * 返回可访问的 /files/results/{uuid}.png。
+     */
+    public String copySampleResult(String sampleResultPath) throws IOException {
+        if (sampleResultPath == null || sampleResultPath.isBlank()) {
+            throw new IOException("Sample result path is blank");
+        }
+        ClassPathResource sample = new ClassPathResource(sampleResultPath);
+        if (!sample.exists()) {
+            throw new IOException("Sample result not found: " + sampleResultPath);
+        }
+
+        Files.createDirectories(resultsRoot);
+        Path temp = Files.createTempFile(resultsRoot, "result-", ".tmp");
+        boolean moved = false;
+        try {
+            try (InputStream input = sample.getInputStream()) {
+                Files.copy(input, temp, StandardCopyOption.REPLACE_EXISTING);
+            }
+            String storageKey = "results/" + UUID.randomUUID() + ".png";
+            Path target = root.resolve(storageKey).normalize();
+            if (!target.startsWith(resultsRoot)) {
+                throw new IOException("Invalid result path");
+            }
+            Files.move(temp, target, StandardCopyOption.ATOMIC_MOVE);
+            moved = true;
+            return "/files/" + storageKey;
+        } finally {
+            if (!moved) {
+                try {
+                    Files.deleteIfExists(temp);
+                } catch (IOException exception) {
+                    log.warn("Failed to delete temporary result file {}", temp, exception);
+                }
+            }
         }
     }
 

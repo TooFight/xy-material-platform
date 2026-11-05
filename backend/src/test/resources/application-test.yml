@@ -10,3 +10,9 @@ spring:
       encoding: UTF-8
       schema-locations: classpath:db/schema.sql
       data-locations: classpath:db/data.sql
+
+app:
+  simulation:
+    fail-stage: NONE
+    stage-delay-ms: 0
+    dev-api-enabled: false

@@ -1,5 +1,6 @@
 package com.xy.material.config;
 
+import com.xy.material.task.simulation.SimulationProperties;
 import com.xy.material.user.CurrentUserArgumentResolver;
 import com.xy.material.user.UserInterceptor;
 import java.nio.charset.StandardCharsets;
@@ -16,7 +17,12 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-@EnableConfigurationProperties({CorsProperties.class, StorageProperties.class})
+@EnableConfigurationProperties({
+        CorsProperties.class,
+        StorageProperties.class,
+        SimulationProperties.class,
+        TaskExecutorProperties.class
+})
 public class WebConfig implements WebMvcConfigurer {
 
     /**

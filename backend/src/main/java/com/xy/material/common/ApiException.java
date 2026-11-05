@@ -54,4 +54,8 @@ public class ApiException extends RuntimeException {
     public static ApiException unsupportedFileType(String message) {
         return new ApiException(HttpStatus.UNSUPPORTED_MEDIA_TYPE, ErrorCodes.UNSUPPORTED_FILE_TYPE, message);
     }
+
+    public static ApiException devApiDisabled() {
+        return new ApiException(HttpStatus.NOT_FOUND, ErrorCodes.DEV_API_DISABLED, "开发接口未启用");
+    }
 }
