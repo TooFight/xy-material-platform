@@ -1,16 +1,86 @@
+/* 竖版深色卡片，状态文字居中（UI-03）。aspect-ratio 只决定最小高度，内容多时自动变高。 */
 .card {
-  padding: 18px;
+  position: relative;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  aspect-ratio: 9 / 16;
+  flex-direction: column;
+  overflow: hidden;
   border: 1px solid var(--color-line);
-  border-radius: 18px;
-  background: var(--color-surface);
-  box-shadow: 0 1px 2px rgba(29, 27, 25, 0.04);
+  border-radius: 12px;
+  background: #0d0d10;
+  isolation: isolate;
+}
+
+.thumbnail {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: #08080a;
+  isolation: isolate;
+}
+
+.thumbnailBackdrop {
+  position: absolute;
+  inset: -15%;
+  z-index: -1;
+  width: 130%;
+  max-width: none;
+  height: 130%;
+  filter: blur(24px) brightness(0.55);
+  object-fit: cover;
+}
+
+.thumbnailImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.4s ease;
+}
+
+.thumbnail:hover .thumbnailImage {
+  transform: scale(1.03);
+}
+
+.thumbnail:focus-visible {
+  outline-offset: -3px;
+  border-radius: 12px;
+}
+
+.thumbnailHint {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  font-size: 11.5px;
 }
 
 .header {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
+  padding: 12px 12px 0;
+}
+
+/* 成功卡的标题压在结果图上：加顶部渐变保证可读，并让点击穿透到预览按钮。 */
+.card[data-has-result="true"] .header {
+  padding-bottom: 24px;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.62) 0%, rgba(0, 0, 0, 0) 100%);
+  pointer-events: none;
 }
 
 .heading {
@@ -20,8 +90,8 @@
 .title {
   margin: 0;
   overflow: hidden;
-  font-size: 16px;
-  font-weight: 700;
+  font-size: 13px;
+  font-weight: 600;
   line-height: 1.35;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -29,214 +99,204 @@
 
 .time {
   display: block;
-  margin-top: 3px;
-  color: var(--color-muted);
-  font-size: 11.5px;
-}
-
-.status {
-  flex-shrink: 0;
-  padding: 4px 9px;
-  border-radius: 999px;
-  background: #f1ece4;
-  color: var(--color-muted);
+  margin-top: 1px;
+  color: var(--color-faint);
   font-size: 11px;
-  font-weight: 700;
-  white-space: nowrap;
 }
 
-.status[data-status="RUNNING"] {
-  background: #e8f1ff;
-  color: #2f5f9e;
+.card[data-has-result="true"] .time {
+  color: rgba(255, 255, 255, 0.72);
 }
 
-.status[data-status="SUCCEEDED"] {
-  background: rgba(47, 125, 95, 0.12);
-  color: var(--color-success);
+.doneChip {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  font-size: 10.5px;
+  font-weight: 600;
 }
 
-.status[data-status="FAILED"] {
-  background: rgba(210, 60, 30, 0.1);
-  color: var(--color-accent-strong);
+.center {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 14px;
+  text-align: center;
+}
+
+.spinner {
+  width: 22px;
+  height: 22px;
+  margin-bottom: 4px;
+  border: 2px solid rgba(255, 255, 255, 0.14);
+  border-top-color: var(--color-accent);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+.card[data-status="PENDING"] .spinner {
+  border-top-color: var(--color-muted);
+  animation-duration: 1.8s;
+}
+
+.statusText {
+  color: var(--color-ink);
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .stageLine {
-  margin: 12px 0 0;
-  color: var(--color-muted);
-  font-size: 12.5px;
+  margin: 0;
+  color: var(--color-faint);
+  font-size: 11.5px;
 }
 
+.failure {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.failure strong {
+  color: var(--color-danger);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.failure p {
+  margin: 0;
+  color: rgba(244, 244, 245, 0.9);
+  font-size: 13px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.footer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: auto;
+  padding: 0 12px 12px;
+}
+
+.card[data-has-result="true"] .footer {
+  pointer-events: none;
+}
+
+.card[data-has-result="true"] .footer > * {
+  pointer-events: auto;
+}
+
+/* 三段进度条：素材检查 → 模拟生成 → 结果整理。 */
 .steps {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin: 14px 0 0;
+  gap: 4px;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .step {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
   min-width: 0;
-  padding: 10px;
-  border: 1px solid var(--color-line);
-  border-radius: 12px;
-  background: #fbf9f5;
+  flex-direction: column;
+  gap: 5px;
 }
 
-.stepDot {
-  display: grid;
-  width: 22px;
-  height: 22px;
-  place-items: center;
-  border-radius: 50%;
-  background: #eee7dc;
-  color: var(--color-muted);
-  font-size: 11px;
-  font-weight: 700;
+.stepBar {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--color-surface-3);
 }
 
 .stepName {
   overflow: hidden;
-  color: var(--color-ink);
-  font-size: 12px;
-  font-weight: 600;
+  color: var(--color-faint);
+  font-size: 10.5px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.stepState {
-  color: var(--color-muted);
-  font-size: 10.5px;
-}
-
-.step[data-state="completed"] .stepDot {
-  background: rgba(47, 125, 95, 0.14);
-  color: var(--color-success);
-}
-
-.step[data-state="current"] {
-  border-color: rgba(242, 84, 45, 0.4);
-  background: var(--color-accent-soft);
-}
-
-.step[data-state="current"] .stepDot {
+.step[data-state="completed"] .stepBar {
   background: var(--color-accent);
-  color: #fff;
 }
 
-.step[data-state="current"] .stepState {
-  color: var(--color-accent-strong);
-  font-weight: 700;
+.step[data-state="completed"] .stepName {
+  color: var(--color-muted);
 }
 
-.step[data-state="failed"] {
-  border-color: rgba(210, 60, 30, 0.35);
-  background: rgba(242, 84, 45, 0.06);
+.step[data-state="current"] .stepBar {
+  background: linear-gradient(90deg, var(--color-info) 0%, rgba(138, 180, 255, 0.35) 50%, var(--color-info) 100%);
+  background-size: 200% 100%;
+  animation: flow 1.2s linear infinite;
 }
 
-.step[data-state="failed"] .stepDot {
-  background: var(--color-accent-strong);
-  color: #fff;
+.step[data-state="current"] .stepName {
+  color: var(--color-info);
 }
 
-.step[data-state="failed"] .stepState {
-  color: var(--color-accent-strong);
-  font-weight: 700;
+.step[data-state="failed"] .stepBar {
+  background: var(--color-danger);
 }
 
-.step[data-state="skipped"] {
-  border-style: dashed;
-  background: #faf8f4;
+.step[data-state="failed"] .stepName {
+  color: var(--color-danger);
 }
 
-.step[data-state="skipped"] .stepState {
-  color: #9a9389;
-}
-
-.syncWarning,
-.failure {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 14px;
-  padding: 11px 13px;
-  border-radius: 12px;
-  font-size: 12.5px;
-  line-height: 1.5;
+.step[data-state="skipped"] .stepBar {
+  background: repeating-linear-gradient(90deg, var(--color-surface-3) 0 4px, transparent 4px 7px);
 }
 
 .syncWarning {
-  border: 1px solid rgba(176, 124, 24, 0.3);
-  background: #fff8e8;
-  color: #755313;
-}
-
-.failure {
-  display: block;
-  border: 1px solid rgba(210, 60, 30, 0.22);
-  background: rgba(242, 84, 45, 0.07);
-  color: var(--color-accent-strong);
-}
-
-.syncWarning strong,
-.failure strong {
-  font-size: 12.5px;
-}
-
-.syncWarning p,
-.failure p {
-  margin: 3px 0 0;
-}
-
-.pausedHint {
-  color: #8b6725;
-}
-
-.retryButton {
-  flex-shrink: 0;
-  align-self: center;
-  padding: 6px 10px;
-  border: 1px solid rgba(176, 124, 24, 0.35);
-  border-radius: 999px;
-  background: #fffdf7;
-  color: #755313;
+  padding: 8px 10px;
+  border: 1px solid rgba(242, 193, 95, 0.3);
+  border-radius: 9px;
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
   font-size: 11.5px;
-  font-weight: 700;
+  line-height: 1.5;
 }
 
-.retryButton:hover {
-  background: #fff;
-}
-
-.thumbnail {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 14px;
-  padding: 6px;
-  border: 1px solid var(--color-line);
-  border-radius: 12px;
-  background: #fbf9f5;
-  color: var(--color-muted);
-  font-size: 12px;
+.syncWarning strong {
+  display: block;
   font-weight: 600;
 }
 
-.thumbnail:hover {
-  border-color: var(--color-accent);
-  color: var(--color-accent-strong);
+.syncWarning p {
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
 }
 
-.thumbnail img {
-  width: 128px;
-  height: 80px;
+.pausedHint {
+  opacity: 0.85;
+}
+
+.actions {
+  display: flex;
+  gap: 6px;
+}
+
+.iconButton {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 0;
   border-radius: 8px;
-  object-fit: cover;
+  background: var(--color-surface-2);
+  color: var(--color-ink);
+}
+
+.iconButton:hover {
+  background: var(--color-surface-3);
 }
 
 .dialog {
@@ -244,17 +304,18 @@
   max-width: 900px;
   padding: 0;
   border: 0;
-  border-radius: 20px;
-  background: var(--color-surface);
-  box-shadow: 0 30px 80px -20px rgba(29, 27, 25, 0.55);
+  border-radius: 26px;
+  background: #1c1c20;
+  box-shadow: var(--shadow-pop);
+  color: var(--color-ink);
 }
 
 .dialog::backdrop {
-  background: rgba(29, 27, 25, 0.62);
+  background: rgba(0, 0, 0, 0.75);
 }
 
 .dialogInner {
-  padding: 18px;
+  padding: 20px;
 }
 
 .dialogHeader {
@@ -262,48 +323,53 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .dialogHeader h3 {
   margin: 0;
   font-size: 16px;
+  font-weight: 600;
 }
 
 .closeButton {
   display: grid;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
   place-items: center;
-  border: 1px solid var(--color-line);
-  border-radius: 50%;
-  background: var(--color-surface);
-  color: var(--color-ink);
-  font-size: 20px;
-  line-height: 1;
+  border: 0;
+  border-radius: 12px;
+  background: #131316;
+  color: #d4d4d8;
 }
 
 .closeButton:hover {
-  background: var(--color-accent-soft);
+  background: #0d0d0f;
+  color: #fff;
 }
 
 .dialogImage {
   display: block;
   width: 100%;
-  max-height: 70vh;
-  border-radius: 12px;
-  background: #f4efe7;
+  max-height: 72vh;
+  border-radius: 14px;
+  background: #08080a;
   object-fit: contain;
 }
 
-@media (max-width: 520px) {
-  .steps {
-    grid-template-columns: 1fr;
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes flow {
+  from {
+    background-position: 200% 0;
   }
 
-  .thumbnail img {
-    width: 100px;
-    height: 64px;
+  to {
+    background-position: 0 0;
   }
 }

@@ -9,6 +9,7 @@ import type { TaskDTO, TemplateDetail as TemplateDetailDTO } from "@/lib/types";
 import type { TaskEntry } from "@/lib/tasks/taskReducer";
 import { formatFileSize, formatMimeTypes } from "@/lib/upload/fileValidation";
 
+import { ChevronLeftIcon, ChevronRightIcon } from "./icons";
 import { TaskCard } from "./TaskCard";
 import { TemplateUploadForm } from "./TemplateUploadForm";
 import styles from "./TemplateDetail.module.css";
@@ -106,73 +107,86 @@ export function TemplateDetail({
     return <TemplateDetailSkeleton />;
   }
 
-  return (
-    <article className={styles.detail}>
-      <Link href="/" className={styles.backLink}>
-        <span aria-hidden="true">←</span> 返回模板列表
-      </Link>
+  const coverSrc = assetUrl(template.coverUrl);
+  const tasks = submittedTasks ?? [];
 
-      <header className={styles.hero}>
+  // UI-02 / UI-03：左栏制作面板，右栏本页提交的任务。
+  return (
+    <div className={styles.detail}>
+      <article className={styles.makePanel} aria-labelledby="template-title">
+        <header className={styles.titleRow}>
+          <Link href="/" className={styles.backLink} aria-label="返回模板列表">
+            <ChevronLeftIcon size={18} />
+          </Link>
+          <h1 id="template-title" className={styles.title}>
+            {template.title}
+          </h1>
+        </header>
+
         <div className={styles.coverFrame}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- 装饰性模糊底图，地址同封面。 */}
+          <img className={styles.coverBackdrop} src={coverSrc} alt="" aria-hidden="true" />
           {/* eslint-disable-next-line @next/next/no-img-element -- 封面域名由 NEXT_PUBLIC_API_BASE_URL 在运行时决定，无法预配置 next/image 的 remotePatterns。 */}
           <img
             className={styles.cover}
-            src={assetUrl(template.coverUrl)}
+            src={coverSrc}
             alt={`${template.title}模板封面`}
-            width={800}
-            height={600}
+            width={540}
+            height={960}
           />
         </div>
 
-        <div className={styles.info}>
-          <span className={styles.category}>{template.category.name}</span>
-          <h1 className={styles.title}>{template.title}</h1>
-          <p className={styles.description}>{template.description}</p>
+        <p className={styles.description}>{template.description}</p>
 
-          <dl className={styles.requirements} aria-label="素材要求">
-            <div className={styles.requirement}>
-              <dt>图片数量</dt>
-              <dd>需 {template.requiredImageCount} 张</dd>
-            </div>
-            <div className={styles.requirement}>
-              <dt>支持格式</dt>
-              <dd>{formatMimeTypes(template.acceptedMimeTypes)}</dd>
-            </div>
-            <div className={styles.requirement}>
-              <dt>单张上限</dt>
-              <dd>{formatFileSize(template.maxFileSizeBytes)}</dd>
-            </div>
-          </dl>
-        </div>
-      </header>
-
-      <TemplateUploadForm
-        key={userId ?? "anonymous"}
-        template={template}
-        userId={userId}
-        onSubmitted={onSubmitted}
-      />
-
-      {submittedTasks && submittedTasks.length > 0 && (
-        <section className={styles.sessionTasks} aria-labelledby="session-tasks-heading">
-          <div className={styles.sessionHeader}>
-            <h2 id="session-tasks-heading" className={styles.sessionTitle}>
-              本次提交的任务
-            </h2>
-            <p className={styles.sessionHint}>任务状态会自动更新。</p>
+        <dl className={styles.requirements} aria-label="素材要求">
+          <div className={styles.requirement}>
+            <dt>图片数量</dt>
+            <dd>需 {template.requiredImageCount} 张</dd>
           </div>
-          <div className={styles.sessionList}>
-            {submittedTasks.map((entry) => (
-              <TaskCard
-                key={entry.task.id}
-                entry={entry}
-                onRetry={onRetryTask ?? (() => undefined)}
-              />
+          <div className={styles.requirement}>
+            <dt>支持格式</dt>
+            <dd>{formatMimeTypes(template.acceptedMimeTypes)}</dd>
+          </div>
+          <div className={styles.requirement}>
+            <dt>单张上限</dt>
+            <dd>{formatFileSize(template.maxFileSizeBytes)}</dd>
+          </div>
+        </dl>
+
+        <TemplateUploadForm
+          key={userId ?? "anonymous"}
+          template={template}
+          userId={userId}
+          onSubmitted={onSubmitted}
+        />
+      </article>
+
+      <section className={styles.recordsPanel} aria-labelledby="session-tasks-heading">
+        <header className={styles.recordsHeader}>
+          <h2 id="session-tasks-heading" className={styles.recordsTitle}>
+            本次提交的任务
+          </h2>
+          <Link href="/history" className={styles.historyLink}>
+            全部作品
+            <ChevronRightIcon size={15} />
+          </Link>
+        </header>
+
+        {tasks.length > 0 ? (
+          <ul className={styles.recordsGrid} aria-label="本次提交的任务列表">
+            {tasks.map((entry) => (
+              <li key={entry.task.id} className={styles.recordsItem}>
+                <TaskCard entry={entry} onRetry={onRetryTask ?? (() => undefined)} />
+              </li>
             ))}
-          </div>
-        </section>
-      )}
-    </article>
+          </ul>
+        ) : (
+          <p className={styles.recordsEmpty}>
+            上传图片并提交后，制作任务会出现在这里。任务在后台处理，离开页面也不会中断。
+          </p>
+        )}
+      </section>
+    </div>
   );
 }
 
@@ -182,21 +196,15 @@ function TemplateDetailSkeleton() {
       <p className="srOnly" role="status">
         正在加载模板详情…
       </p>
-      <div className={styles.skeletonBack} aria-hidden="true" />
-      <div className={styles.hero} aria-hidden="true">
-        <div className={`${styles.coverFrame} ${styles.skeletonCover}`} />
-        <div className={styles.info}>
-          <span className={styles.skeletonLineShort} />
-          <span className={styles.skeletonTitle} />
-          <span className={styles.skeletonLineWide} />
-          <span className={styles.skeletonLineWide} />
-          <div className={styles.skeletonRequirements} />
-        </div>
+      <div className={styles.makePanel} aria-hidden="true">
+        <span className={styles.skeletonTitle} />
+        <span className={`${styles.coverFrame} ${styles.skeletonBlock}`} />
+        <span className={styles.skeletonLine} />
+        <span className={`${styles.skeletonBlock} ${styles.skeletonUpload}`} />
+        <span className={`${styles.skeletonBlock} ${styles.skeletonButton}`} />
       </div>
-      <div className={styles.skeletonSlots} aria-hidden="true">
-        {Array.from({ length: 2 }, (_, index) => (
-          <span key={index} className={styles.skeletonSlot} />
-        ))}
+      <div className={styles.recordsPanel} aria-hidden="true">
+        <span className={styles.skeletonTitle} />
       </div>
     </div>
   );

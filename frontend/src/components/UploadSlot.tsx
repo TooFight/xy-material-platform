@@ -6,6 +6,7 @@ import type { TemplateDetail } from "@/lib/types";
 import { formatFileSize, formatMimeTypes } from "@/lib/upload/fileValidation";
 import type { UploadSlotState } from "@/lib/upload/uploadSlotReducer";
 
+import { ImagePlusIcon } from "./icons";
 import styles from "./UploadSlot.module.css";
 
 export interface UploadSlotProps {
@@ -74,8 +75,11 @@ export function UploadSlot({
           />
         ) : (
           <span className={styles.emptyPreview} aria-hidden="true">
-            <span className={styles.plus}>＋</span>
+            <span className={styles.plus}>
+              <ImagePlusIcon size={17} />
+            </span>
             <span className={styles.emptyTitle}>上传第 {slotNumber} 张图片</span>
+            <span className={styles.emptyTitleShort}>第 {slotNumber} 张</span>
             <span className={styles.emptyHint}>
               {formatMimeTypes(template.acceptedMimeTypes)} · ≤{" "}
               {formatFileSize(template.maxFileSizeBytes)}
@@ -96,32 +100,33 @@ export function UploadSlot({
         )}
       </label>
 
-      <div className={styles.footer}>
-        <span className={styles.fileName}>{slot.file?.name ?? `第 ${slotNumber} 张图片`}</span>
-        <div className={styles.actions}>
-          {(slot.status === "uploaded" || slot.status === "uploading") && (
-            <button
-              type="button"
-              className={styles.actionButton}
-              onClick={openPicker}
-              disabled={disabled}
-              aria-label={`替换第 ${slotNumber} 张图片`}
-            >
-              替换
-            </button>
-          )}
-          {slot.status === "error" && slot.file && (
-            <button
-              type="button"
-              className={styles.actionButton}
-              onClick={() => onRetry(index)}
-              disabled={disabled}
-              aria-label={`重试上传第 ${slotNumber} 张图片`}
-            >
-              重试
-            </button>
-          )}
-          {slot.status !== "empty" && (
+      {/* 空上传位的提示已经在虚线框里，底栏只在选了文件之后出现。 */}
+      {slot.status !== "empty" && (
+        <div className={styles.footer}>
+          <span className={styles.fileName}>{slot.file?.name ?? `第 ${slotNumber} 张图片`}</span>
+          <div className={styles.actions}>
+            {(slot.status === "uploaded" || slot.status === "uploading") && (
+              <button
+                type="button"
+                className={styles.actionButton}
+                onClick={openPicker}
+                disabled={disabled}
+                aria-label={`替换第 ${slotNumber} 张图片`}
+              >
+                替换
+              </button>
+            )}
+            {slot.status === "error" && slot.file && (
+              <button
+                type="button"
+                className={styles.actionButton}
+                onClick={() => onRetry(index)}
+                disabled={disabled}
+                aria-label={`重试上传第 ${slotNumber} 张图片`}
+              >
+                重试
+              </button>
+            )}
             <button
               type="button"
               className={styles.actionButton}
@@ -131,12 +136,18 @@ export function UploadSlot({
             >
               移除
             </button>
-          )}
+          </div>
         </div>
-      </div>
+      )}
 
       <p
-        className={slot.status === "error" ? `${styles.status} ${styles.statusError}` : styles.status}
+        className={
+          slot.status === "error"
+            ? `${styles.status} ${styles.statusError}`
+            : slot.status === "empty"
+              ? "srOnly"
+              : styles.status
+        }
         aria-live="polite"
       >
         {statusText}

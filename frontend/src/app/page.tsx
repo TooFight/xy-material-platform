@@ -3,6 +3,7 @@
 import { Suspense, useCallback } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
+import { ChannelTabs } from "@/components/ChannelTabs";
 import { TemplateBrowser, TemplateBrowserSkeleton } from "@/components/TemplateBrowser";
 
 import styles from "./page.module.css";
@@ -33,6 +34,7 @@ function HomeContent() {
 export default function HomePage() {
   return (
     <main className={styles.page}>
+      <ChannelTabs />
       <Suspense fallback={<TemplateBrowserSkeleton />}>
         <HomeContent />
       </Suspense>

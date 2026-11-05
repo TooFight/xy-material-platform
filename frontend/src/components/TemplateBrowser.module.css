@@ -2,95 +2,42 @@
   width: 100%;
 }
 
-.intro {
-  max-width: 660px;
-  margin-bottom: 30px;
-}
-
-.eyebrow {
-  margin: 0 0 10px;
-  color: var(--color-accent-strong);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-}
-
-.heading {
-  margin: 0;
-  font-size: clamp(30px, 4vw, 46px);
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  line-height: 1.12;
-}
-
-.lede {
-  margin: 14px 0 0;
-  color: var(--color-muted);
-  font-size: 15px;
-  line-height: 1.7;
-}
-
 .toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 16px;
-  margin-bottom: 26px;
-  padding-bottom: 22px;
-  border-bottom: 1px solid var(--color-line);
+  gap: 8px 20px;
+  margin: 18px 0 16px;
 }
 
+/* 二级分类：纯文字标签，选中为白色（UI-01 第二行）。 */
 .categories {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 4px 22px;
 }
 
 .categoryButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 8px 14px;
-  border: 1px solid var(--color-line);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.55);
+  padding: 4px 0;
+  border: 0;
+  background: none;
   color: var(--color-muted);
-  font-size: 13px;
-  font-weight: 600;
-  transition: color 0.18s ease, background-color 0.18s ease, border-color 0.18s ease;
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: color 0.15s ease;
 }
 
 .categoryButton:hover {
-  border-color: #d9cfc1;
-  background: #fff;
   color: var(--color-ink);
 }
 
 .categoryButton[aria-pressed="true"] {
-  border-color: var(--color-ink);
-  background: var(--color-ink);
-  box-shadow: 0 8px 18px -12px rgba(29, 27, 25, 0.8);
   color: #fff;
-}
-
-.categoryCount {
-  display: inline-grid;
-  min-width: 19px;
-  height: 19px;
-  place-items: center;
-  padding: 0 5px;
-  border-radius: 999px;
-  background: rgba(29, 27, 25, 0.07);
-  font-size: 10.5px;
-  font-weight: 700;
-}
-
-.categoryButton[aria-pressed="true"] .categoryCount {
-  background: rgba(255, 255, 255, 0.18);
+  font-weight: 600;
 }
 
 .categoryState {
-  color: var(--color-muted);
+  color: var(--color-faint);
   font-size: 12px;
 }
 
@@ -98,7 +45,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  color: var(--color-accent-strong);
+  color: var(--color-danger);
   font-size: 12px;
 }
 
@@ -107,18 +54,14 @@
   border: 0;
   background: none;
   color: inherit;
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: underline;
-}
-
-.categoryError button:hover {
-  color: var(--color-ink);
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr));
-  gap: 22px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
   margin: 0;
   padding: 0;
 }
@@ -128,46 +71,20 @@
 }
 
 .skeletonCard {
-  overflow: hidden;
-  padding-bottom: 18px;
-  border: 1px solid var(--color-line);
+  aspect-ratio: 9 / 16;
   border-radius: var(--radius-card);
   list-style: none;
-  background: var(--color-surface);
-}
-
-.skeletonCover {
-  display: block;
-  aspect-ratio: 4 / 3;
-  background: linear-gradient(100deg, #efe9df 30%, #f8f5ef 50%, #efe9df 70%);
+  background: linear-gradient(100deg, #17171b 30%, #212127 50%, #17171b 70%);
   background-size: 200% 100%;
   animation: shimmer 1.4s linear infinite;
 }
 
-.skeletonLineWide {
-  display: block;
-  width: 68%;
-  height: 14px;
-  margin: 16px 18px 0;
-  border-radius: 6px;
-  background: #efe9df;
-}
-
-.skeletonLineShort {
-  display: block;
-  width: 42%;
-  height: 11px;
-  margin: 12px 18px 0;
-  border-radius: 6px;
-  background: #f4efe7;
-}
-
 .categorySkeleton {
-  width: min(420px, 100%);
-  height: 40px;
-  margin-bottom: 26px;
-  border-radius: 999px;
-  background: linear-gradient(100deg, #efe9df 30%, #f8f5ef 50%, #efe9df 70%);
+  width: min(320px, 100%);
+  height: 26px;
+  margin: 18px 0 16px;
+  border-radius: 6px;
+  background: linear-gradient(100deg, #17171b 30%, #212127 50%, #17171b 70%);
   background-size: 200% 100%;
   animation: shimmer 1.4s linear infinite;
 }
@@ -177,62 +94,66 @@
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  padding: 64px 24px;
-  border: 1px dashed var(--color-line);
-  border-radius: var(--radius-card);
-  background: rgba(255, 255, 255, 0.55);
+  padding: 80px 24px;
+  border-radius: var(--radius-panel);
+  background: var(--color-panel);
   text-align: center;
 }
 
 .stateMark {
   display: grid;
-  width: 46px;
-  height: 46px;
+  width: 44px;
+  height: 44px;
   place-items: center;
   margin-bottom: 8px;
   border-radius: 50%;
-  background: var(--color-accent-soft);
-  color: var(--color-accent-strong);
-  font-size: 20px;
+  background: var(--color-surface-2);
+  color: var(--color-muted);
+  font-size: 18px;
   font-weight: 700;
+}
+
+.statePanel[role="alert"] .stateMark {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
 }
 
 .stateTitle {
   margin: 0;
-  font-size: 18px;
+  font-size: 17px;
+  font-weight: 600;
 }
 
 .stateText {
   max-width: 42ch;
   margin: 0;
   color: var(--color-muted);
-  font-size: 14px;
+  font-size: 13.5px;
 }
 
 .retryButton,
 .secondaryButton {
-  margin-top: 12px;
-  padding: 9px 18px;
+  margin-top: 14px;
+  padding: 9px 20px;
   border: 0;
-  border-radius: 999px;
-  background: var(--color-ink);
-  color: #fff;
+  border-radius: 10px;
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
   font-size: 13px;
   font-weight: 600;
 }
 
 .retryButton:hover {
-  background: #000;
+  background: var(--color-accent-hover);
 }
 
 .secondaryButton {
-  border: 1px solid var(--color-line);
-  background: var(--color-surface);
+  background: var(--color-surface-2);
   color: var(--color-ink);
 }
 
 .secondaryButton:hover {
-  border-color: var(--color-accent);
+  background: var(--color-surface-3);
 }
 
 @keyframes shimmer {
@@ -246,24 +167,8 @@
 }
 
 @media (max-width: 640px) {
-  .intro {
-    margin-bottom: 24px;
-  }
-
-  .heading {
-    font-size: 30px;
-  }
-
-  .lede {
-    font-size: 14px;
-  }
-
-  .toolbar {
-    margin-bottom: 20px;
-    padding-bottom: 18px;
-  }
-
   .grid {
-    gap: 16px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
   }
 }

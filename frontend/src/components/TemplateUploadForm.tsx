@@ -13,6 +13,7 @@ import {
   type UploadSlotsState,
 } from "@/lib/upload/uploadSlotReducer";
 
+import { SparkIcon } from "./icons";
 import { UploadSlot } from "./UploadSlot";
 import styles from "./TemplateUploadForm.module.css";
 
@@ -227,18 +228,15 @@ export function TemplateUploadForm({ template, userId, onSubmitted }: TemplateUp
   return (
     <section className={styles.form} aria-labelledby="upload-heading">
       <div className={styles.header}>
-        <div>
-          <p className={styles.eyebrow}>素材上传</p>
-          <h2 id="upload-heading" className={styles.heading}>
-            上传 {template.requiredImageCount} 张图片
-          </h2>
-        </div>
+        <h2 id="upload-heading" className={styles.heading}>
+          上传 {template.requiredImageCount} 张图片
+        </h2>
         <p className={styles.progress} aria-live="polite">
           {uploadedCount} / {slots.length} 已上传
         </p>
       </div>
 
-      <ul className={styles.slotGrid} aria-label="图片上传位">
+      <ul className={styles.slotGrid} data-count={slots.length} aria-label="图片上传位">
         {slots.map((slot, index) => (
           <UploadSlot
             key={index}
@@ -280,6 +278,11 @@ export function TemplateUploadForm({ template, userId, onSubmitted }: TemplateUp
           onClick={handleSubmit}
           disabled={!canSubmit}
         >
+          {submitting ? (
+            <span className={styles.spinner} aria-hidden="true" />
+          ) : (
+            <SparkIcon size={15} />
+          )}
           {submitting ? "提交中…" : "提交制作任务"}
         </button>
       </div>

@@ -1,40 +1,38 @@
-.switcher {
-  display: flex;
+.trigger {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-}
-
-.label {
-  color: var(--color-muted);
-  font-size: 12px;
-  white-space: nowrap;
-}
-
-.select {
-  padding: 7px 30px 7px 12px;
-  border: 1px solid var(--color-line);
-  border-radius: 999px;
-  appearance: none;
-  background-color: var(--color-surface);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%236f6a62' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-position: right 11px center;
-  background-repeat: no-repeat;
-  box-shadow: 0 1px 2px rgba(29, 27, 25, 0.05);
+  gap: 6px;
+  padding: 6px 4px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
   color: var(--color-ink);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
-.select:disabled {
+.trigger:hover:not(:disabled) {
+  color: #fff;
+  background: var(--color-surface);
+}
+
+.trigger:disabled {
   cursor: progress;
-  opacity: 0.65;
+  opacity: 0.6;
+}
+
+.triggerName {
+  max-width: 10em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .error {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--color-accent-strong);
+  color: var(--color-danger);
   font-size: 12px;
   white-space: nowrap;
 }
@@ -44,16 +42,209 @@
   border: 0;
   background: none;
   color: inherit;
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: underline;
 }
 
-.error button:hover {
+/* —— 账号设置对话框 —— */
+.dialog {
+  width: min(94vw, 540px);
+  max-width: 540px;
+  max-height: min(92vh, 860px);
+  padding: 0;
+  border: 0;
+  border-radius: 34px;
+  background: #1c1c20;
+  box-shadow: var(--shadow-pop);
   color: var(--color-ink);
 }
 
+.dialog::backdrop {
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.dialogInner {
+  padding: 26px 24px 30px;
+}
+
+.dialogHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 22px 2px;
+}
+
+.dialogHeader h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.closeButton {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 14px;
+  background: #131316;
+  color: #d4d4d8;
+}
+
+.closeButton:hover {
+  background: #0d0d0f;
+  color: #fff;
+}
+
+.profile {
+  padding: 22px 22px 24px;
+  border-radius: 24px;
+  background: #2a2a2f;
+}
+
+.profileTop {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.profileAvatar {
+  display: grid;
+  width: 62px;
+  height: 62px;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-avatar);
+  color: #fff;
+}
+
+.profileText {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.profileName {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.profileSub {
+  color: var(--color-muted);
+  font-size: 13px;
+}
+
+.profileRows {
+  display: grid;
+  gap: 18px;
+  margin: 20px 0 0;
+}
+
+.profileRow dt {
+  color: var(--color-muted);
+  font-size: 14px;
+}
+
+.profileRow dd {
+  margin: 4px 0 0;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.group {
+  margin-top: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.groupList {
+  margin: 0;
+  padding: 6px 0;
+  list-style: none;
+}
+
+.groupItem {
+  display: flex;
+  width: 100%;
+  min-height: 58px;
+  align-items: center;
+  gap: 14px;
+  padding: 0 20px;
+  border: 0;
+  background: none;
+  color: var(--color-ink);
+  font-size: 16px;
+  text-align: left;
+  transition: background-color 0.15s ease;
+}
+
+.groupItem:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.groupItem:focus-visible {
+  outline-offset: -2px;
+  border-radius: 0;
+}
+
+.itemIcon {
+  display: grid;
+  width: 24px;
+  place-items: center;
+  color: #e4e4e7;
+}
+
+.itemLabel {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemChevron {
+  color: #d4d4d8;
+}
+
+.itemCheck {
+  color: var(--color-accent);
+}
+
+.notice {
+  margin-top: 26px;
+  padding: 0 4px;
+}
+
+.notice h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.notice p {
+  margin: 10px 0 0;
+  color: var(--color-muted);
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+
 @media (max-width: 520px) {
-  .label {
-    display: none;
+  .dialog {
+    border-radius: 26px;
+  }
+
+  .dialogInner {
+    padding: 20px 16px 24px;
+  }
+
+  .profile {
+    padding: 18px;
   }
 }

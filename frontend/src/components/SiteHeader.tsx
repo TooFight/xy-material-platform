@@ -8,55 +8,38 @@ import { useTasks } from "@/lib/tasks/TaskProvider";
 
 import styles from "./SiteHeader.module.css";
 
-const NAV_ITEMS = [
-  { href: "/", label: "模板" },
-  { href: "/history", label: "我的作品" },
-] as const;
-
 export function SiteHeader() {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "/";
   const { activeCount, isRestoring } = useTasks();
+
+  // 制作页按 UI-02 / UI-03 做成全屏双栏，不显示顶栏；页内有返回按钮。
+  if (pathname.startsWith("/templates/")) {
+    return null;
+  }
 
   return (
     <header className={styles.header}>
-      <div className={styles.inner}>
-        <Link href="/" className={styles.brand} aria-label="小影素材工坊，返回模板列表">
-          <span className={styles.mark} aria-hidden="true">
-            影
+      <Link href="/" className={styles.brand} aria-label="小影素材工坊，返回模板列表">
+        <span className={styles.mark} aria-hidden="true">
+          <span className={styles.face}>
+            <span className={styles.eye} />
+            <span className={styles.eye} />
           </span>
-          <span className={styles.brandText}>
-            <span className={styles.brandName}>小影素材工坊</span>
-            <span className={styles.brandTag}>MATERIAL STUDIO</span>
-          </span>
-        </Link>
+        </span>
+      </Link>
 
-        <nav className={styles.nav} aria-label="主导航">
-          {NAV_ITEMS.map((item) => {
-            const isActive =
-              item.href === "/"
-                ? pathname === "/" || pathname.startsWith("/templates/")
-                : pathname === item.href || pathname.startsWith(`${item.href}/`);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={styles.navLink}
-                aria-current={isActive ? "page" : undefined}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className={styles.actions}>
-          {/* F3：显示全局未完成任务数；恢复期间显示加载状态，不显示 0。 */}
-          <span className={styles.taskIndicator} role="status" aria-live="polite">
-            <span className={styles.pulse} aria-hidden="true" />
-            {isRestoring ? "任务加载中…" : `${activeCount} 个任务处理中`}
-          </span>
-          <UserSwitcher />
-        </div>
+      <div className={styles.actions}>
+        {/* 全局未完成任务数；恢复期间显示加载状态，不显示 0。 */}
+        <span
+          className={styles.taskIndicator}
+          data-active={!isRestoring && activeCount > 0}
+          role="status"
+          aria-live="polite"
+        >
+          <span className={styles.pulse} aria-hidden="true" />
+          {isRestoring ? "任务加载中…" : `${activeCount} 个任务处理中`}
+        </span>
+        <UserSwitcher />
       </div>
     </header>
   );

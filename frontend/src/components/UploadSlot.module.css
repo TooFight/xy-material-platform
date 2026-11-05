@@ -1,34 +1,42 @@
 .slot {
   display: flex;
+  min-width: 0;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid var(--color-line);
-  border-radius: 16px;
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
   background: var(--color-surface);
-  box-shadow: 0 1px 2px rgba(29, 27, 25, 0.04);
   list-style: none;
-  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  container-type: inline-size;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.slot:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  background: #202026;
 }
 
 .slot:focus-within {
-  outline: 3px solid rgba(242, 84, 45, 0.45);
-  outline-offset: 3px;
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.slot[data-status="uploading"],
+.slot[data-status="uploaded"] {
+  border-style: solid;
+  border-color: var(--color-line);
 }
 
 .slot[data-status="error"] {
-  border-color: rgba(210, 60, 30, 0.4);
-}
-
-.slot[data-status="uploaded"] {
-  border-color: rgba(47, 125, 95, 0.28);
+  border-style: solid;
+  border-color: rgba(255, 123, 110, 0.45);
 }
 
 .previewLabel {
   position: relative;
   display: block;
   overflow: hidden;
-  aspect-ratio: 4 / 3;
-  background: linear-gradient(135deg, #f4e8d9, #e8eef0);
+  aspect-ratio: var(--slot-ratio, 4 / 3);
   cursor: pointer;
 }
 
@@ -56,33 +64,34 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 5px;
-  padding: 18px;
-  color: var(--color-muted);
+  gap: 3px;
+  padding: 10px;
   text-align: center;
 }
 
 .plus {
   display: grid;
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   place-items: center;
-  margin-bottom: 4px;
-  border: 1px dashed #d6cabc;
+  margin-bottom: 8px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.55);
-  color: var(--color-accent-strong);
-  font-size: 23px;
-  line-height: 1;
+  background: var(--color-surface-3);
+  color: #e4e4e7;
 }
 
-.emptyTitle {
+.emptyTitle,
+.emptyTitleShort {
   color: var(--color-ink);
   font-size: 13px;
-  font-weight: 700;
+}
+
+.emptyTitleShort {
+  display: none;
 }
 
 .emptyHint {
+  color: var(--color-faint);
   font-size: 11px;
   line-height: 1.5;
 }
@@ -94,41 +103,40 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 9px;
-  background: rgba(29, 27, 25, 0.5);
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.6);
   color: #fff;
-  font-size: 12.5px;
-  font-weight: 600;
+  font-size: 12px;
 }
 
 .spinner {
   width: 20px;
   height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.35);
-  border-top-color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-top-color: var(--color-accent);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
 
 .badge {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  padding: 4px 9px;
+  top: 7px;
+  right: 7px;
+  padding: 2px 8px;
   border-radius: 999px;
-  background: var(--color-success);
-  color: #fff;
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
   font-size: 10.5px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  min-height: 42px;
-  padding: 9px 12px;
+  gap: 6px;
+  min-height: 34px;
+  padding: 5px 8px 5px 10px;
   border-top: 1px solid var(--color-line);
 }
 
@@ -147,13 +155,13 @@
 }
 
 .actionButton {
-  padding: 4px 6px;
+  padding: 3px 6px;
   border: 0;
   border-radius: 6px;
   background: none;
-  color: var(--color-accent-strong);
+  color: var(--color-accent);
   font-size: 11.5px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .actionButton:hover:not(:disabled) {
@@ -161,20 +169,36 @@
 }
 
 .actionButton:disabled {
-  cursor: not-allowed;
   opacity: 0.45;
 }
 
 .status {
   margin: 0;
-  padding: 0 12px 11px;
-  color: var(--color-muted);
-  font-size: 11.5px;
+  padding: 0 10px 8px;
+  color: var(--color-faint);
+  font-size: 11px;
   line-height: 1.5;
 }
 
 .statusError {
-  color: var(--color-accent-strong);
+  color: var(--color-danger);
+}
+
+/* 三列/六格的窄上传位只保留图标和序号。 */
+@container (max-width: 150px) {
+  .emptyHint,
+  .emptyTitle,
+  .fileName {
+    display: none;
+  }
+
+  .emptyTitleShort {
+    display: block;
+  }
+
+  .footer {
+    justify-content: center;
+  }
 }
 
 @keyframes spin {

@@ -126,9 +126,6 @@ export function TemplateBrowser({ category, onCategoryChange }: TemplateBrowserP
               onClick={() => onCategoryChange(item.code)}
             >
               {item.name}
-              <span className={styles.categoryCount} aria-hidden="true">
-                {item.templateCount}
-              </span>
             </CategoryButton>
           ))}
         </nav>
@@ -202,15 +199,12 @@ export function TemplateBrowserSkeleton() {
   );
 }
 
+// 参考界面没有可见的页面大标题；保留给读屏用户的 h1。
 function BrowserIntro() {
   return (
-    <div className={styles.intro}>
-      <p className={styles.eyebrow}>素材模板</p>
-      <h1 id="template-heading" className={styles.heading}>
-        挑一个模板，开始制作
-      </h1>
-      <p className={styles.lede}>选好模板，上传符合要求的图片，剩下的交给后台处理。</p>
-    </div>
+    <h1 id="template-heading" className="srOnly">
+      模板列表
+    </h1>
   );
 }
 
@@ -237,12 +231,8 @@ function TemplateGridSkeleton() {
         正在加载模板…
       </p>
       <ul className={styles.grid} aria-hidden="true">
-        {Array.from({ length: 6 }, (_, index) => (
-          <li key={index} className={styles.skeletonCard}>
-            <span className={styles.skeletonCover} />
-            <span className={styles.skeletonLineWide} />
-            <span className={styles.skeletonLineShort} />
-          </li>
+        {Array.from({ length: 12 }, (_, index) => (
+          <li key={index} className={styles.skeletonCard} />
         ))}
       </ul>
     </div>

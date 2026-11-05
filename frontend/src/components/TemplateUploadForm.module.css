@@ -1,130 +1,142 @@
+/* 占满左栏剩余高度，提交区贴在面板底部（UI-02 的 Create Now）。 */
 .form {
-  padding-top: 28px;
-  border-top: 1px solid var(--color-line);
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  margin-top: 18px;
 }
 
 .header {
   display: flex;
-  flex-wrap: wrap;
-  align-items: end;
+  align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 20px;
-}
-
-.eyebrow {
-  margin: 0 0 8px;
-  color: var(--color-accent-strong);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  margin-bottom: 10px;
 }
 
 .heading {
   margin: 0;
-  font-size: clamp(22px, 3vw, 28px);
-  letter-spacing: -0.01em;
+  font-size: 13.5px;
+  font-weight: 600;
 }
 
 .progress {
   margin: 0;
-  padding: 6px 12px;
-  border: 1px solid var(--color-line);
-  border-radius: 999px;
-  background: var(--color-surface);
-  color: var(--color-muted);
-  font-size: 12.5px;
-  font-weight: 600;
+  color: var(--color-faint);
+  font-size: 12px;
 }
 
 .slotGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
   margin: 0;
   padding: 0;
 }
 
+.slotGrid[data-count="1"] {
+  grid-template-columns: 1fr;
+  --slot-ratio: 5 / 2;
+}
+
+.slotGrid[data-count="3"],
+.slotGrid[data-count="6"] {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  --slot-ratio: 1 / 1;
+}
+
 .identityHint {
-  margin: 14px 0 0;
+  margin: 12px 0 0;
   color: var(--color-muted);
-  font-size: 13px;
+  font-size: 12.5px;
 }
 
 .submitError {
-  margin: 16px 0 0;
-  padding: 10px 14px;
-  border: 1px solid rgba(210, 60, 30, 0.2);
+  margin: 12px 0 0;
+  padding: 9px 12px;
+  border: 1px solid rgba(255, 123, 110, 0.25);
   border-radius: 10px;
-  background: rgba(242, 84, 45, 0.07);
-  color: var(--color-accent-strong);
-  font-size: 13px;
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  font-size: 12.5px;
 }
 
 .submitBar {
+  position: sticky;
+  bottom: 0;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  margin-top: 24px;
-  padding: 18px;
-  border: 1px solid var(--color-line);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.7);
+  flex-direction: column;
+  gap: 8px;
+  margin: auto -22px 0;
+  padding: 14px 22px 20px;
+  background: linear-gradient(180deg, rgba(20, 20, 23, 0) 0%, var(--color-panel) 22%);
 }
 
 .submitInfo {
   display: flex;
-  flex-direction: column;
-  gap: 3px;
-  color: var(--color-ink);
-  font-size: 13.5px;
-  font-weight: 600;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 2px 10px;
+  color: var(--color-muted);
+  font-size: 12px;
 }
 
 .submitHint {
-  color: var(--color-muted);
-  font-size: 12px;
-  font-weight: 400;
-}
-
-.success {
-  color: var(--color-success);
+  color: var(--color-faint);
 }
 
 .submitButton {
-  flex-shrink: 0;
-  min-height: 42px;
-  padding: 10px 22px;
+  display: inline-flex;
+  width: 100%;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 20px;
   border: 0;
-  border-radius: 999px;
-  background: var(--color-ink);
-  color: #fff;
-  font-size: 13.5px;
-  font-weight: 700;
-  transition: background-color 0.18s ease, opacity 0.18s ease;
+  border-radius: 10px;
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  font-size: 14px;
+  font-weight: 600;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .submitButton:hover:not(:disabled) {
-  background: #000;
+  background: var(--color-accent-hover);
 }
 
 .submitButton:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
+  background: var(--color-accent-dim);
+  color: rgba(20, 26, 5, 0.85);
 }
 
-@media (max-width: 768px) {
-  .slotGrid {
-    grid-template-columns: 1fr;
-  }
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(20, 26, 5, 0.25);
+  border-top-color: var(--color-accent-ink);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
 
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 520px) {
   .submitBar {
-    flex-direction: column;
-    align-items: stretch;
+    margin: auto -16px 0;
+    padding: 18px 16px 16px;
   }
+}
 
-  .submitButton {
-    width: 100%;
+@media (max-width: 380px) {
+  .slotGrid[data-count="3"],
+  .slotGrid[data-count="6"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

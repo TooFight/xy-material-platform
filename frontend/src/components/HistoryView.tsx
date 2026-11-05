@@ -9,6 +9,7 @@ import { useTasks } from "@/lib/tasks/TaskProvider";
 import { createTaskEntry } from "@/lib/tasks/taskReducer";
 import type { TaskDTO } from "@/lib/types";
 
+import { RefreshIcon } from "./icons";
 import { TaskCard } from "./TaskCard";
 import styles from "./HistoryView.module.css";
 
@@ -155,7 +156,6 @@ export function HistoryView({ userId }: HistoryViewProps) {
     <section className={styles.view} aria-labelledby="history-heading">
       <header className={styles.header}>
         <div>
-          <p className={styles.eyebrow}>个人作品</p>
           <h1 id="history-heading" className={styles.title}>
             我的作品
           </h1>
@@ -171,8 +171,10 @@ export function HistoryView({ userId }: HistoryViewProps) {
               className={styles.refreshButton}
               onClick={retryLoad}
               disabled={state.status === "loading"}
+              aria-label="刷新"
+              title="刷新"
             >
-              刷新
+              <RefreshIcon size={17} />
             </button>
           )}
         </div>
@@ -217,12 +219,8 @@ export function HistoryView({ userId }: HistoryViewProps) {
             正在加载历史记录…
           </p>
           <ul className={styles.list} aria-hidden="true">
-            {Array.from({ length: 3 }, (_, index) => (
-              <li key={index} className={styles.skeletonCard}>
-                <span className={styles.skeletonTitle} />
-                <span className={styles.skeletonLine} />
-                <span className={styles.skeletonBlock} />
-              </li>
+            {Array.from({ length: 5 }, (_, index) => (
+              <li key={index} className={styles.skeletonCard} />
             ))}
           </ul>
         </div>
