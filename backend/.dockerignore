@@ -1,0 +1,11 @@
+# 构建上下文只需要 Maven 工程、wrapper 和源码。
+.git
+.gitignore
+.idea
+.vscode
+*.iml
+target
+uploads
+.env
+.env.*
+*.log
