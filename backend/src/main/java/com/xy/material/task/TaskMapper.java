@@ -103,12 +103,15 @@ public interface TaskMapper {
     @Update("""
             UPDATE tasks
                SET status = 'FAILED',
-                   failed_stage = NULL,
+                   failed_stage = stage,
                    failure_reason = #{reason,jdbcType=VARCHAR},
                    result_url = NULL,
                    finished_at = #{now,jdbcType=TIMESTAMP},
                    updated_at = #{now,jdbcType=TIMESTAMP}
              WHERE status IN ('PENDING', 'RUNNING')
+               AND created_at < #{cutoff,jdbcType=TIMESTAMP}
             """)
-    int failUnfinished(@Param("reason") String reason, @Param("now") LocalDateTime now);
+    int failUnfinished(@Param("reason") String reason,
+                       @Param("cutoff") LocalDateTime cutoff,
+                       @Param("now") LocalDateTime now);
 }

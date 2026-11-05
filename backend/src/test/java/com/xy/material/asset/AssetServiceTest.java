@@ -6,6 +6,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.xy.material.config.StorageProperties;
+import com.xy.material.files.FileSigningProperties;
+import com.xy.material.files.FileUrlSigner;
 import com.xy.material.template.CategoryRef;
 import com.xy.material.template.TemplateDetailDto;
 import com.xy.material.template.TemplateService;
@@ -38,7 +40,8 @@ class AssetServiceTest {
     @BeforeEach
     void setUp() {
         AssetStorage storage = new AssetStorage(new StorageProperties(tempDir.toString()));
-        assetService = new AssetService(assetMapper, templateService, storage);
+        FileUrlSigner signer = new FileUrlSigner(new FileSigningProperties("test-secret"));
+        assetService = new AssetService(assetMapper, templateService, storage, signer);
     }
 
     @Test

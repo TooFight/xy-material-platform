@@ -1,6 +1,7 @@
 package com.xy.material.task;
 
 import com.xy.material.common.ApiException;
+import com.xy.material.files.FileUrlSigner;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -17,13 +18,16 @@ public class TaskQueryService {
     private final TaskMapper taskMapper;
     private final TaskAssetMapper taskAssetMapper;
     private final StageLogMapper stageLogMapper;
+    private final FileUrlSigner fileUrlSigner;
 
     public TaskQueryService(TaskMapper taskMapper,
                             TaskAssetMapper taskAssetMapper,
-                            StageLogMapper stageLogMapper) {
+                            StageLogMapper stageLogMapper,
+                            FileUrlSigner fileUrlSigner) {
         this.taskMapper = taskMapper;
         this.taskAssetMapper = taskAssetMapper;
         this.stageLogMapper = stageLogMapper;
+        this.fileUrlSigner = fileUrlSigner;
     }
 
     public TaskDto getTask(long userId, long taskId) {
@@ -34,7 +38,7 @@ public class TaskQueryService {
         }
         List<TaskAssetRow> assets = taskAssetMapper.findByTaskIds(List.of(taskId));
         List<StageLogRow> stages = stageLogMapper.findByTaskId(taskId);
-        return TaskDto.from(task, assets, stages);
+        return TaskDto.from(task, assets, stages, fileUrlSigner);
     }
 
     public TaskListResponse listActive(long userId) {
@@ -67,7 +71,8 @@ public class TaskQueryService {
                 .map(task -> TaskDto.from(
                         task,
                         assetsByTask.getOrDefault(task.getId(), List.of()),
-                        null))
+                        null,
+                        fileUrlSigner))
                 .toList();
     }
 }

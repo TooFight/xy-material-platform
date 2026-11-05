@@ -5,6 +5,7 @@ import com.xy.material.asset.AssetService;
 import com.xy.material.asset.AssetStorage;
 import com.xy.material.common.ApiException;
 import com.xy.material.common.ErrorCodes;
+import com.xy.material.files.FileUrlSigner;
 import com.xy.material.task.simulation.SimulationConfig;
 import com.xy.material.task.simulation.SimulationSnapshot;
 import com.xy.material.template.TemplateDetailDto;
@@ -32,6 +33,7 @@ public class TaskService {
     private final AssetStorage assetStorage;
     private final SimulationConfig simulationConfig;
     private final ApplicationEventPublisher eventPublisher;
+    private final FileUrlSigner fileUrlSigner;
 
     public TaskService(TaskMapper taskMapper,
                        TaskAssetMapper taskAssetMapper,
@@ -39,7 +41,8 @@ public class TaskService {
                        AssetService assetService,
                        AssetStorage assetStorage,
                        SimulationConfig simulationConfig,
-                       ApplicationEventPublisher eventPublisher) {
+                       ApplicationEventPublisher eventPublisher,
+                       FileUrlSigner fileUrlSigner) {
         this.taskMapper = taskMapper;
         this.taskAssetMapper = taskAssetMapper;
         this.templateService = templateService;
@@ -47,6 +50,7 @@ public class TaskService {
         this.assetStorage = assetStorage;
         this.simulationConfig = simulationConfig;
         this.eventPublisher = eventPublisher;
+        this.fileUrlSigner = fileUrlSigner;
     }
 
     /**
@@ -105,7 +109,7 @@ public class TaskService {
         eventPublisher.publishEvent(new TaskAcceptedEvent(task.getId()));
 
         List<Asset> orderedAssets = assetIds.stream().map(assetsById::get).toList();
-        return TaskDto.fromPending(task, template, orderedAssets);
+        return TaskDto.fromPending(task, template, orderedAssets, fileUrlSigner);
     }
 
     private static List<Long> validateAssetIds(List<Long> assetIds, int requiredImageCount) {

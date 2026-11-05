@@ -60,7 +60,7 @@
 - 前端右上角有身份切换器，当前身份保存在 `localStorage`（`xy.userId`）。首次访问时默认选第一个用户。
 - 数据隔离由后端强制执行：素材、任务查询的 SQL 都带 `user_id = #{currentUserId}`。访问他人的任务或素材统一返回 `404`，不暴露资源是否存在。
 - 已知限制（写入 README）：这是演示用的身份方案，请求头可以伪造，不提供真正的鉴权。生产环境应换成 Session/JWT，但接口层的用户隔离逻辑不用改。
-- 图片 URL 的访问控制：`<img>` 无法携带自定义请求头，所以 `/files/**` 不校验身份。存储文件名使用 UUID（不可猜测），作为能力式 URL 使用。这一点也在 README 中列为已知限制。
+- 图片 URL 的访问控制：`<img>` 无法携带自定义请求头，所以 `/files/**` 不校验身份，改为签名 URL。后端在把数据转成 DTO 时，对 `/files/**` 路径追加 `exp`（秒级时间戳）和 `sig`（对 `path + "\n" + exp` 做 HMAC-SHA256，再 base64url 编码）。`exp` 按整点时间窗口取整（下一个整点再加 1 小时），同一窗口内 URL 不变，避免轮询时 `<img>` 反复重载；签名错误或过期返回 404。密钥来自 `APP_FILES_SIGNING_SECRET`，未配置时启动随机生成，重启后旧链接失效。数据库只保存未签名路径。`/demo/**` 保持公开且不签名。这一点也在 README 中列为已知限制。
 
 ## 5. 任务模型（R-05）
 
@@ -75,7 +75,8 @@
 | RUNNING | CHECKING / GENERATING / FINALIZING | null | null | 正在执行该阶段 |
 | SUCCEEDED | FINALIZING | null | 有值 | 三步全部完成 |
 | FAILED | 失败时所在阶段 | 同 stage | null | 在该阶段失败，后续阶段未执行 |
-| FAILED | null | null | null | 尚未开始就失败（线程池拒绝、服务重启中断） |
+| FAILED | 中断时的阶段 | 同 stage | null | 服务重启中断；清理为失败，stage 保持不变 |
+| FAILED | null | null | null | 尚未开始就失败（线程池拒绝、PENDING 被中断） |
 
 前后端使用同一套枚举字面量，修改时两端同步（前端 `src/lib/types.ts`，后端 `TaskStatus` / `TaskStage`）。
 
@@ -130,7 +131,7 @@ for (TaskStage stage : List.of(CHECKING, GENERATING, FINALIZING)) {
 taskStore.succeed(taskId, resultUrl);
 ```
 
-- 每个阶段的开始和结束都单独落库：`tasks.stage/status/updated_at`，以及 `task_stage_logs` 一行记录（开始时间、结束时间、结果）。不使用包住整条流水线或 `sleep` 的大事务。
+- 阶段开始时更新 `tasks.status='RUNNING'`、`tasks.stage`、`started_at`、`updated_at`，并写入 `task_stage_logs` 的 `RUNNING` 记录；阶段结束时只更新 `task_stage_logs.status` 和 `finished_at`，**不更新 tasks 行**。任务进入终态（成功或失败）时，才更新 `tasks.finished_at`、`result_url` 或 `failed_stage`/`failure_reason`。不使用包住整条流水线或 `sleep` 的大事务。
 - 三个阶段的实际内容（不处理图片，但每步都有可观察的副作用）：
   - `CHECKING`：重新读取任务关联的素材，确认文件存在、大小和类型与记录一致。
   - `GENERATING`：模拟生成，在指定耗时后得到一个“生成产物标识”（使用模板预置的示例结果图）。
@@ -153,7 +154,12 @@ taskStore.succeed(taskId, resultUrl);
 
 ### 6.5 服务重启（已知边界）
 
-不做断点续跑。为避免任务永远停在“处理中”，应用启动时执行一次清理：把 `PENDING` / `RUNNING` 的任务标记为 `FAILED`，原因为“服务重启，任务已中断”。这只是终结任务，不会恢复执行。README 会如实说明这一点。
+不做断点续跑。为避免任务永远停在“处理中”，应用启动时执行一次清理，只处理 `created_at` 早于本次启动时刻的 `PENDING` / `RUNNING` 任务，避免误杀启动后新提交的任务。清理在同一个事务里：
+
+- 把这些任务标记为 `FAILED`，`failed_stage` 取任务当时的 `stage`（PENDING 任务的 stage 为 null，所以 failed_stage 也为 null），`stage` 字段保持不变；
+- 把对应 `task_stage_logs` 中 `status='RUNNING'` 的记录改为 `FAILED`，`message` 写“服务重启，任务已中断”，并填上 `finished_at`。
+
+清理只终结任务，不会恢复执行。README 会如实说明这一点。
 
 ## 7. 素材上传与校验（R-03）
 

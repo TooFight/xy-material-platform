@@ -37,14 +37,6 @@ public class TaskStore {
         return taskMapper.succeed(taskId, resultUrl, now()) > 0;
     }
 
-    /**
-     * 启动清理：把 PENDING / RUNNING 任务终结为 FAILED，failed_stage 为 null。
-     */
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public int failUnfinished(String reason) {
-        return taskMapper.failUnfinished(truncate(reason), now());
-    }
-
     private static LocalDateTime now() {
         return LocalDateTime.now(Clock.systemUTC()).truncatedTo(ChronoUnit.MILLIS);
     }

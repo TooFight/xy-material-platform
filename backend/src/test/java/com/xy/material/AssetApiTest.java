@@ -98,7 +98,8 @@ class AssetApiTest {
                 .andExpect(jsonPath("$.originalFilename").value("beach.jpg"))
                 .andExpect(jsonPath("$.mimeType").value("image/jpeg"))
                 .andExpect(jsonPath("$.sizeBytes").value(bytes.length))
-                .andExpect(jsonPath("$.url").value(matchesPattern("/files/assets/[0-9a-fA-F-]{36}\\.jpg")))
+                .andExpect(jsonPath("$.url").value(matchesPattern(
+                        "/files/assets/[0-9a-fA-F-]{36}\\.jpg\\?exp=\\d+&sig=[A-Za-z0-9_-]+")))
                 .andExpect(jsonPath("$.createdAt").value(matchesPattern(".+Z")))
                 .andReturn();
 
@@ -114,7 +115,8 @@ class AssetApiTest {
                 .andExpect(jsonPath("$.originalFilename").value("city.png"))
                 .andExpect(jsonPath("$.mimeType").value("image/png"))
                 .andExpect(jsonPath("$.sizeBytes").value(bytes.length))
-                .andExpect(jsonPath("$.url").value(matchesPattern("/files/assets/[0-9a-fA-F-]{36}\\.png")))
+                .andExpect(jsonPath("$.url").value(matchesPattern(
+                        "/files/assets/[0-9a-fA-F-]{36}\\.png\\?exp=\\d+&sig=[A-Za-z0-9_-]+")))
                 .andReturn();
 
         assertStored(readJson(result), bytes, "demo-polaroid", "image/png", "city.png", "png");
@@ -180,13 +182,15 @@ class AssetApiTest {
         String storageKey = jdbcTemplate.queryForObject(
                 "SELECT storage_key FROM assets WHERE id = ?", String.class, id);
 
-        assertThat(url).matches("/files/assets/[0-9a-fA-F-]{36}\\.png");
+        assertThat(url).matches(
+                "/files/assets/[0-9a-fA-F-]{36}\\.png\\?exp=\\d+&sig=[A-Za-z0-9_-]+");
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT original_filename FROM assets WHERE id = ?", String.class, id))
                 .isEqualTo("passwd.png");
-        assertThat(storageKey).startsWith("assets/").doesNotContain("..").doesNotContain("etc");
+        assertThat(storageKey).startsWith("assets/").doesNotContain("..").doesNotContain("etc")
+                .doesNotContain("?exp=").doesNotContain("sig=");
 
-        Path stored = STORAGE_DIR.resolve(url.substring("/files/".length())).normalize();
+        Path stored = storedPath(url);
         assertThat(stored).isRegularFile();
         assertThat(stored.startsWith(STORAGE_DIR.resolve("assets").normalize())).isTrue();
         assertThat(Files.exists(STORAGE_DIR.getParent().resolve("etc/passwd.png"))).isFalse();
@@ -243,7 +247,8 @@ class AssetApiTest {
         assertThat(body.get("mimeType").asText()).isEqualTo(mimeType);
         assertThat(body.get("sizeBytes").asLong()).isEqualTo(bytes.length);
         assertThat(body.get("originalFilename").asText()).isEqualTo(originalFilename);
-        assertThat(url).matches("/files/assets/[0-9a-fA-F-]{36}\\." + extension);
+        assertThat(url).matches("/files/assets/[0-9a-fA-F-]{36}\\." + extension
+                + "\\?exp=\\d+&sig=[A-Za-z0-9_-]+");
         Instant.parse(body.get("createdAt").asText());
 
         assertThat(jdbcTemplate.queryForObject(
@@ -257,9 +262,10 @@ class AssetApiTest {
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT original_filename FROM assets WHERE id = ?", String.class, id)).isEqualTo(originalFilename);
         assertThat(jdbcTemplate.queryForObject(
-                "SELECT storage_key FROM assets WHERE id = ?", String.class, id)).startsWith("assets/");
+                "SELECT storage_key FROM assets WHERE id = ?", String.class, id))
+                .startsWith("assets/").doesNotContain("?exp=").doesNotContain("sig=");
 
-        Path stored = STORAGE_DIR.resolve(url.substring("/files/".length())).normalize();
+        Path stored = storedPath(url);
         assertThat(stored).isRegularFile();
         assertThat(Files.readAllBytes(stored)).isEqualTo(bytes);
 
@@ -267,6 +273,12 @@ class AssetApiTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(mimeType))
                 .andExpect(content().bytes(bytes));
+    }
+
+    private Path storedPath(String url) {
+        int query = url.indexOf('?');
+        String path = query >= 0 ? url.substring(0, query) : url;
+        return STORAGE_DIR.resolve(path.substring("/files/".length())).normalize();
     }
 
     private static byte[] imageBytes(String format) throws IOException {

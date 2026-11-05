@@ -1,5 +1,6 @@
 package com.xy.material.config;
 
+import com.xy.material.files.FileSigningProperties;
 import com.xy.material.task.simulation.SimulationProperties;
 import com.xy.material.user.CurrentUserArgumentResolver;
 import com.xy.material.user.UserInterceptor;
@@ -21,7 +22,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
         CorsProperties.class,
         StorageProperties.class,
         SimulationProperties.class,
-        TaskExecutorProperties.class
+        TaskExecutorProperties.class,
+        FileSigningProperties.class
 })
 public class WebConfig implements WebMvcConfigurer {
 

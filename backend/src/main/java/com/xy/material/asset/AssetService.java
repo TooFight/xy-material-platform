@@ -2,6 +2,7 @@ package com.xy.material.asset;
 
 import com.xy.material.common.ApiException;
 import com.xy.material.common.ErrorCodes;
+import com.xy.material.files.FileUrlSigner;
 import com.xy.material.template.TemplateDetailDto;
 import com.xy.material.template.TemplateService;
 import java.io.IOException;
@@ -22,11 +23,16 @@ public class AssetService {
     private final AssetMapper assetMapper;
     private final TemplateService templateService;
     private final AssetStorage assetStorage;
+    private final FileUrlSigner fileUrlSigner;
 
-    public AssetService(AssetMapper assetMapper, TemplateService templateService, AssetStorage assetStorage) {
+    public AssetService(AssetMapper assetMapper,
+                        TemplateService templateService,
+                        AssetStorage assetStorage,
+                        FileUrlSigner fileUrlSigner) {
         this.assetMapper = assetMapper;
         this.templateService = templateService;
         this.assetStorage = assetStorage;
+        this.fileUrlSigner = fileUrlSigner;
     }
 
     public AssetDto upload(long userId, String templateId, MultipartFile file) {
@@ -73,7 +79,7 @@ public class AssetService {
             throw exception;
         }
 
-        return AssetDto.from(asset);
+        return AssetDto.from(asset, fileUrlSigner);
     }
 
     /**

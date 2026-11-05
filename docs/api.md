@@ -38,7 +38,7 @@
 |---|---|---|
 | 400 | `VALIDATION_ERROR` | 参数缺失或格式错误、数量不符、素材不属于该模板等 |
 | 401 | `UNAUTHORIZED` | `X-User-Id` 缺失或无效 |
-| 404 | `NOT_FOUND` | 模板、任务或素材不存在，或不属于当前用户 |
+| 404 | `NOT_FOUND` | 模板、任务或素材不存在，或不属于当前用户；文件签名错误或已过期 |
 | 413 | `FILE_TOO_LARGE` | 文件超过模板限制或全局 multipart 上限 |
 | 415 | `UNSUPPORTED_FILE_TYPE` | 按文件头识别的类型不在模板允许范围内 |
 | 404 | `DEV_API_DISABLED` | 未开启 dev API 时访问 `/api/dev/**` |
@@ -212,7 +212,7 @@ type StageLogStatus = 'RUNNING' | 'SUCCEEDED' | 'FAILED';
 |---|---|
 | `status` | 整体状态，见 §0.4 |
 | `stage` | 当前（或最后到达的）阶段；`PENDING` 时为 `null` |
-| `failedStage` | 仅当 `FAILED` 且失败发生在某个阶段时有值；未开始就失败（如服务重启中断）时为 `null` |
+| `failedStage` | 仅当 `FAILED` 且失败发生在某个阶段时有值；服务重启中断时为中断时的阶段；未开始就失败（线程池拒绝、PENDING 被中断）时为 `null` |
 | `failureReason` | 面向用户的失败原因，仅 `FAILED` 时有值 |
 | `resultUrl` | 仅 `SUCCEEDED` 时有值，可直接作为 `<img src>` |
 | `stages` | 已经开始的阶段的执行记录，按执行顺序排列；没开始的阶段不出现 |
@@ -273,9 +273,11 @@ type StageLogStatus = 'RUNNING' | 'SUCCEEDED' | 'FAILED';
 
 | 路径 | 来源 | 鉴权 |
 |---|---|---|
-| `/demo/**` | `classpath:static/demo/`（模板封面、示例结果图） | 公开 |
-| `/files/assets/{uuid}.{ext}` | `${APP_STORAGE_DIR}/assets/` | 公开，依靠 UUID 无法猜测（见 architecture.md §4） |
-| `/files/results/{uuid}.{ext}` | `${APP_STORAGE_DIR}/results/` | 同上 |
+| `/demo/**` | `classpath:static/demo/`（模板封面、示例结果图） | 公开，不签名 |
+| `/files/assets/{uuid}.{ext}?exp=…&sig=…` | `${APP_STORAGE_DIR}/assets/` | 公开但需签名 URL；签名错误/过期返回 404 |
+| `/files/results/{uuid}.{ext}?exp=…&sig=…` | `${APP_STORAGE_DIR}/results/` | 同上 |
+
+> 接口返回的 `AssetDTO.url`、`TaskDTO.assets[].url`、`TaskDTO.resultUrl` 都已带 `exp` 和 `sig`；数据库只保存未签名路径。签名在同一整点时间窗口内稳定（`exp` 取下一个整点再加 1 小时），因此前端轮询不会让 `<img>` 反复重载。签名密钥来自 `APP_FILES_SIGNING_SECRET`，未配置时启动随机生成。`/files/**` 响应使用 `Cache-Control: private`。
 
 ---
 

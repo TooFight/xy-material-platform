@@ -46,6 +46,23 @@ public interface StageLogMapper {
              @Param("message") String message,
              @Param("now") LocalDateTime now);
 
+    @Update("""
+            UPDATE task_stage_logs
+               SET status = 'FAILED',
+                   message = #{message,jdbcType=VARCHAR},
+                   finished_at = #{now,jdbcType=TIMESTAMP}
+             WHERE status = 'RUNNING'
+               AND task_id IN (
+                   SELECT id
+                   FROM tasks
+                   WHERE status IN ('PENDING', 'RUNNING')
+                     AND created_at < #{cutoff,jdbcType=TIMESTAMP}
+               )
+            """)
+    int failRunningForUnfinished(@Param("message") String message,
+                                 @Param("cutoff") LocalDateTime cutoff,
+                                 @Param("now") LocalDateTime now);
+
     @Select("""
             SELECT id, task_id, stage, status, message, started_at, finished_at
             FROM task_stage_logs

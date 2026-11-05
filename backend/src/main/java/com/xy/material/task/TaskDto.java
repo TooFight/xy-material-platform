@@ -1,6 +1,7 @@
 package com.xy.material.task;
 
 import com.xy.material.asset.Asset;
+import com.xy.material.files.FileUrlSigner;
 import com.xy.material.template.TemplateDetailDto;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -30,11 +31,12 @@ public record TaskDto(
         Instant updatedAt
 ) {
 
-    public static TaskDto fromPending(TaskRow task, TemplateDetailDto template, List<Asset> assets) {
+    public static TaskDto fromPending(TaskRow task, TemplateDetailDto template,
+                                      List<Asset> assets, FileUrlSigner signer) {
         List<TaskAssetDto> assetDtos = new ArrayList<>(assets.size());
         for (int slot = 0; slot < assets.size(); slot++) {
             Asset asset = assets.get(slot);
-            assetDtos.add(new TaskAssetDto(asset.getId(), slot, asset.getUrl()));
+            assetDtos.add(new TaskAssetDto(asset.getId(), slot, signer.sign(asset.getUrl())));
         }
         Instant createdAt = toInstant(task.getCreatedAt());
         return new TaskDto(
@@ -56,9 +58,13 @@ public record TaskDto(
         );
     }
 
-    public static TaskDto from(TaskRow task, List<TaskAssetRow> assetRows, List<StageLogRow> stageRows) {
+    public static TaskDto from(TaskRow task, List<TaskAssetRow> assetRows,
+                               List<StageLogRow> stageRows, FileUrlSigner signer) {
         List<TaskAssetDto> assets = assetRows.stream()
-                .map(row -> new TaskAssetDto(row.getAssetId(), row.getSlotIndex(), "/files/" + row.getStorageKey()))
+                .map(row -> new TaskAssetDto(
+                        row.getAssetId(),
+                        row.getSlotIndex(),
+                        signer.sign("/files/" + row.getStorageKey())))
                 .toList();
         List<StageLogDto> stages = stageRows == null ? null : stageRows.stream()
                 .map(row -> new StageLogDto(
@@ -77,7 +83,7 @@ public record TaskDto(
                 task.getStage(),
                 task.getFailedStage(),
                 task.getFailureReason(),
-                task.getResultUrl(),
+                task.getResultUrl() == null ? null : signer.sign(task.getResultUrl()),
                 assets,
                 stages,
                 toInstant(task.getCreatedAt()),

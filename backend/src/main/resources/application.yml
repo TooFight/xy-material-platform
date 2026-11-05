@@ -46,6 +46,8 @@ app:
     core-size: ${APP_TASK_EXECUTOR_CORE_SIZE:2}
     max-size: ${APP_TASK_EXECUTOR_MAX_SIZE:2}
     queue-capacity: ${APP_TASK_EXECUTOR_QUEUE_CAPACITY:100}
+  files:
+    signing-secret: ${APP_FILES_SIGNING_SECRET:}
 
 logging:
   level:

@@ -1,6 +1,7 @@
 package com.xy.material.asset;
 
 import com.xy.material.common.ApiException;
+import com.xy.material.files.FileUrlSigner;
 import jakarta.servlet.http.HttpServletRequest;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -14,8 +15,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * 公开的本地文件访问入口：/files/** -> APP_STORAGE_DIR。
- * 不校验身份（见 architecture.md §4），但严格校验解析后的真实路径必须在存储根目录内。
+ * 本地文件访问入口：/files/** -> APP_STORAGE_DIR。
+ * 不校验 X-User-Id，但要求 URL 带有有效的 exp/sig 签名；
+ * 签名错误或过期统一返回 404。路径穿越防护与之前一致。
  */
 @RestController
 public class StorageFileController {
@@ -23,24 +25,41 @@ public class StorageFileController {
     private static final String FILES_PREFIX = "/files/";
 
     private final AssetStorage assetStorage;
+    private final FileUrlSigner fileUrlSigner;
 
-    public StorageFileController(AssetStorage assetStorage) {
+    public StorageFileController(AssetStorage assetStorage, FileUrlSigner fileUrlSigner) {
         this.assetStorage = assetStorage;
+        this.fileUrlSigner = fileUrlSigner;
     }
 
     @GetMapping("/files/**")
     public ResponseEntity<Resource> getFile(HttpServletRequest request) {
-        String requestUri = request.getRequestURI();
-        String prefix = request.getContextPath() + FILES_PREFIX;
-        if (!requestUri.startsWith(prefix)) {
+        String path = request.getRequestURI().substring(request.getContextPath().length());
+        if (!path.startsWith(FILES_PREFIX)) {
             throw ApiException.notFound("文件不存在");
         }
 
-        String relativePath = requestUri.substring(prefix.length());
+        String expRaw = request.getParameter("exp");
+        String signature = request.getParameter("sig");
+        if (expRaw == null || signature == null) {
+            throw ApiException.notFound("文件不存在");
+        }
+
+        long exp;
+        try {
+            exp = Long.parseLong(expRaw);
+        } catch (NumberFormatException exception) {
+            throw ApiException.notFound("文件不存在");
+        }
+        if (!fileUrlSigner.verify(path, exp, signature)) {
+            throw ApiException.notFound("文件不存在");
+        }
+
+        String relativePath = path.substring(FILES_PREFIX.length());
         Path file = assetStorage.resolveFile(relativePath);
         return ResponseEntity.ok()
                 .contentType(mediaType(file))
-                .cacheControl(CacheControl.maxAge(Duration.ofHours(1)).cachePublic())
+                .cacheControl(CacheControl.maxAge(Duration.ofHours(1)).cachePrivate())
                 .body(new FileSystemResource(file));
     }
 

@@ -1,5 +1,6 @@
 package com.xy.material.asset;
 
+import com.xy.material.files.FileUrlSigner;
 import java.time.Instant;
 import java.time.ZoneOffset;
 
@@ -16,14 +17,14 @@ public record AssetDto(
         Instant createdAt
 ) {
 
-    public static AssetDto from(Asset asset) {
+    public static AssetDto from(Asset asset, FileUrlSigner signer) {
         return new AssetDto(
                 asset.getId(),
                 asset.getTemplateId(),
                 asset.getOriginalFilename(),
                 asset.getMimeType(),
                 asset.getSizeBytes(),
-                asset.getUrl(),
+                signer.sign(asset.getUrl()),
                 asset.getCreatedAt().toInstant(ZoneOffset.UTC)
         );
     }

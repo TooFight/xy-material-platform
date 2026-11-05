@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -16,6 +17,8 @@ import com.xy.material.asset.AssetService;
 import com.xy.material.support.TestImages;
 import com.xy.material.task.Sleeper;
 import com.xy.material.task.StageLogDto;
+import com.xy.material.task.StageLogMapper;
+import com.xy.material.task.StageLogRow;
 import com.xy.material.task.StageLogStatus;
 import com.xy.material.task.StartupCleanup;
 import com.xy.material.task.TaskAssetDto;
@@ -101,6 +104,9 @@ class TaskApiTest {
     private TaskMapper taskMapper;
 
     @Autowired
+    private StageLogMapper stageLogMapper;
+
+    @Autowired
     private TaskStore taskStore;
 
     @Autowired
@@ -148,7 +154,7 @@ class TaskApiTest {
         assertThat(task.stage()).isEqualTo(TaskStage.FINALIZING);
         assertThat(task.failedStage()).isNull();
         assertThat(task.failureReason()).isNull();
-        assertThat(task.resultUrl()).isNotBlank();
+        assertThat(task.resultUrl()).isNotBlank().contains("?exp=").contains("&sig=");
         assertThat(task.createdAt()).isNotNull();
         assertThat(task.startedAt()).isNotNull();
         assertThat(task.finishedAt()).isNotNull();
@@ -158,7 +164,8 @@ class TaskApiTest {
         assertThat(task.assets()).hasSize(2);
         assertThat(task.assets()).extracting(TaskAssetDto::id).containsExactly(asset1, asset2);
         assertThat(task.assets()).extracting(TaskAssetDto::slotIndex).containsExactly(0, 1);
-        assertThat(task.assets()).extracting(TaskAssetDto::url).allMatch(url -> url.startsWith("/files/assets/"));
+        assertThat(task.assets()).extracting(TaskAssetDto::url).allMatch(url ->
+                url.startsWith("/files/assets/") && url.contains("?exp=") && url.contains("&sig="));
 
         assertThat(task.stages()).hasSize(3);
         assertThat(task.stages()).extracting(StageLogDto::stage)
@@ -185,6 +192,14 @@ class TaskApiTest {
             expected = input.readAllBytes();
         }
         assertThat(Files.readAllBytes(resultFile)).isEqualTo(expected);
+
+        mockMvc.perform(get(task.resultUrl()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.IMAGE_PNG));
+
+        TaskDto secondQuery = taskQueryService.getTask(USER_A, taskId);
+        assertThat(secondQuery.resultUrl()).isEqualTo(task.resultUrl());
+        assertThat(secondQuery.assets().get(0).url()).isEqualTo(task.assets().get(0).url());
     }
 
     @ParameterizedTest
@@ -257,7 +272,7 @@ class TaskApiTest {
 
         TaskDto after = taskQueryService.getTask(USER_A, taskId);
         assertThat(after.status()).isEqualTo(TaskStatus.SUCCEEDED);
-        assertThat(after.resultUrl()).isEqualTo(before.resultUrl());
+        assertThat(unsignedUrl(after.resultUrl())).isEqualTo(unsignedUrl(before.resultUrl()));
         assertThat(after.failureReason()).isNull();
         assertThat(after.stages()).hasSize(3);
         assertThat(taskMapper.findById(taskId).orElseThrow().getStatus()).isEqualTo(TaskStatus.SUCCEEDED);
@@ -363,29 +378,48 @@ class TaskApiTest {
     }
 
     @Test
-    void startupCleanupFailsUnfinishedTasksOnly() {
-        TaskRow pending = newTask(USER_A, TaskStatus.PENDING, null);
-        TaskRow running = newTask(USER_A, TaskStatus.RUNNING, TaskStage.CHECKING);
-        TaskRow succeeded = newTask(USER_A, TaskStatus.SUCCEEDED, TaskStage.FINALIZING);
+    void startupCleanupKeepsInterruptedStageAndOnlyCleansOlderTasks() {
+        LocalDateTime startupAt = startupCleanup.startupAt();
+        TaskRow pending = newTaskAt(USER_A, TaskStatus.PENDING, null, startupAt.minusSeconds(120));
+        TaskRow running = newTaskAt(USER_A, TaskStatus.RUNNING, TaskStage.GENERATING,
+                startupAt.minusSeconds(100));
+        TaskRow succeeded = newTaskAt(USER_A, TaskStatus.SUCCEEDED, TaskStage.FINALIZING,
+                startupAt.minusSeconds(80));
+        TaskRow createdAfterStartup = newTaskAt(USER_A, TaskStatus.PENDING, null,
+                startupAt.plusSeconds(60));
         taskMapper.insert(pending);
         taskMapper.insert(running);
         taskMapper.insert(succeeded);
+        taskMapper.insert(createdAfterStartup);
+        stageLogMapper.start(running.getId(), TaskStage.GENERATING, startupAt.minusSeconds(90));
 
         startupCleanup.cleanup();
 
         TaskRow cleanedPending = taskMapper.findById(pending.getId()).orElseThrow();
         assertThat(cleanedPending.getStatus()).isEqualTo(TaskStatus.FAILED);
+        assertThat(cleanedPending.getStage()).isNull();
         assertThat(cleanedPending.getFailedStage()).isNull();
         assertThat(cleanedPending.getFailureReason()).isEqualTo("服务重启，任务已中断");
 
         TaskRow cleanedRunning = taskMapper.findById(running.getId()).orElseThrow();
         assertThat(cleanedRunning.getStatus()).isEqualTo(TaskStatus.FAILED);
-        assertThat(cleanedRunning.getFailedStage()).isNull();
+        assertThat(cleanedRunning.getStage()).isEqualTo(TaskStage.GENERATING);
+        assertThat(cleanedRunning.getFailedStage()).isEqualTo(TaskStage.GENERATING);
         assertThat(cleanedRunning.getFailureReason()).isEqualTo("服务重启，任务已中断");
+
+        List<StageLogRow> runningLogs = stageLogMapper.findByTaskId(running.getId());
+        assertThat(runningLogs).hasSize(1);
+        assertThat(runningLogs.get(0).getStatus()).isEqualTo(StageLogStatus.FAILED);
+        assertThat(runningLogs.get(0).getMessage()).isEqualTo("服务重启，任务已中断");
+        assertThat(runningLogs.get(0).getFinishedAt()).isNotNull();
 
         TaskRow untouched = taskMapper.findById(succeeded.getId()).orElseThrow();
         assertThat(untouched.getStatus()).isEqualTo(TaskStatus.SUCCEEDED);
         assertThat(untouched.getResultUrl()).isEqualTo("/files/results/existing.png");
+
+        TaskRow later = taskMapper.findById(createdAfterStartup.getId()).orElseThrow();
+        assertThat(later.getStatus()).isEqualTo(TaskStatus.PENDING);
+        assertThat(later.getFailureReason()).isNull();
     }
 
     @Test
@@ -470,7 +504,11 @@ class TaskApiTest {
     }
 
     private TaskRow newTask(long userId, TaskStatus status, TaskStage stage) {
-        LocalDateTime now = LocalDateTime.now(Clock.systemUTC()).truncatedTo(ChronoUnit.MILLIS);
+        return newTaskAt(userId, status, stage,
+                LocalDateTime.now(Clock.systemUTC()).truncatedTo(ChronoUnit.MILLIS));
+    }
+
+    private TaskRow newTaskAt(long userId, TaskStatus status, TaskStage stage, LocalDateTime createdAt) {
         TaskRow task = new TaskRow();
         task.setUserId(userId);
         task.setTemplateId("demo-postcard");
@@ -478,21 +516,26 @@ class TaskApiTest {
         task.setStage(stage);
         task.setSimFailStage("NONE");
         task.setSimStageDelayMs(0);
-        task.setCreatedAt(now);
-        task.setUpdatedAt(now);
+        task.setCreatedAt(createdAt);
+        task.setUpdatedAt(createdAt);
         if (status == TaskStatus.RUNNING) {
-            task.setStartedAt(now);
+            task.setStartedAt(createdAt);
         }
         if (status == TaskStatus.SUCCEEDED) {
-            task.setStartedAt(now);
-            task.setFinishedAt(now);
+            task.setStartedAt(createdAt);
+            task.setFinishedAt(createdAt);
             task.setResultUrl("/files/results/existing.png");
         }
         return task;
     }
 
     private Path storedFile(String url) {
-        return STORAGE_DIR.resolve(url.substring("/files/".length())).normalize();
+        return STORAGE_DIR.resolve(unsignedUrl(url).substring("/files/".length())).normalize();
+    }
+
+    private static String unsignedUrl(String url) {
+        int query = url.indexOf('?');
+        return query >= 0 ? url.substring(0, query) : url;
     }
 
     private static Path createStorageDirectory() {
