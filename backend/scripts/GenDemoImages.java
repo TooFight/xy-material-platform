@@ -29,6 +29,9 @@ import javax.imageio.stream.ImageOutputStream;
 /**
  * 生成演示图片（纯色/渐变背景 + 文字，全部由 JDK 自带 AWT 绘制，无版权问题）。
  *
+ * <p>模板封面（static/demo/covers/*.jpg）不由本脚本生成：它们是来自 Unsplash 的免费授权照片，
+ * 来源与作者见根目录 README 的「素材、脚手架与开源来源」一节。
+ *
  * <p>用法（需要 JDK 21）：
  * <pre>
  *   cd backend
@@ -38,7 +41,6 @@ import javax.imageio.stream.ImageOutputStream;
  *
  * <p>输出：
  * <ul>
- *   <li>backend/src/main/resources/static/demo/covers/ 下 7 张模板封面（800x600 PNG）</li>
  *   <li>backend/src/main/resources/static/demo/results/ 下 7 张示例结果图（800x600 PNG）</li>
  *   <li>docs/sample-images/ 下 4 张上传测试图（JPEG/PNG）与 fake.jpg（文本改名，用于类型校验演示）</li>
  * </ul>
@@ -91,10 +93,8 @@ public final class GenDemoImages {
             throw new IllegalStateException(
                     "请在仓库根目录、backend/ 或 backend/scripts/ 下运行本脚本");
         }
-        Path coversDir = backendDir.resolve("src/main/resources/static/demo/covers");
         Path resultsDir = backendDir.resolve("src/main/resources/static/demo/results");
         Path samplesDir = backendDir.resolve("../docs/sample-images").normalize();
-        Files.createDirectories(coversDir);
         Files.createDirectories(resultsDir);
         Files.createDirectories(samplesDir);
 
@@ -103,14 +103,10 @@ public final class GenDemoImages {
 
         for (int index = 0; index < TEMPLATES.size(); index++) {
             Template template = TEMPLATES.get(index);
-            Path cover = coversDir.resolve(template.slug() + ".png");
             Path result = resultsDir.resolve(template.slug() + ".png");
-            writePng(renderCover(template, index), cover);
             writePng(renderResult(template, index), result);
-            ensureDemoSize(cover);
             ensureDemoSize(result);
-            System.out.printf("  %-14s cover=%6d B  result=%6d B%n",
-                    template.slug(), Files.size(cover), Files.size(result));
+            System.out.printf("  %-14s result=%6d B%n", template.slug(), Files.size(result));
         }
 
         writeJpeg(renderSample("示例素材 · 海滩", new Color(90, 190, 230), new Color(20, 90, 160),
@@ -131,33 +127,8 @@ public final class GenDemoImages {
                 """;
         Files.writeString(samplesDir.resolve("fake.jpg"), fakeText, StandardCharsets.UTF_8);
 
-        System.out.println("Generated demo images in " + coversDir + " and " + resultsDir);
+        System.out.println("Generated demo images in " + resultsDir);
         System.out.println("Generated sample images in " + samplesDir);
-    }
-
-    private static BufferedImage renderCover(Template template, int index) {
-        BufferedImage image = newImage();
-        Graphics2D graphics = image.createGraphics();
-        paintBackground(graphics, template, index);
-        drawDecorations(graphics, index, true);
-
-        graphics.setComposite(AlphaComposite.SrcOver);
-        graphics.setColor(new Color(255, 255, 255, 38));
-        graphics.fillRoundRect(62, 62, WIDTH - 124, HEIGHT - 124, 34, 34);
-        graphics.setColor(new Color(255, 255, 255, 190));
-        graphics.setStroke(new BasicStroke(2f));
-        graphics.drawRoundRect(62, 62, WIDTH - 124, HEIGHT - 124, 34, 34);
-
-        drawPill(graphics, template.category(), WIDTH / 2, 132);
-        Font titleFont = fitFont(graphics, template.title(), 620, Font.BOLD, 66);
-        drawCentered(graphics, template.title(), WIDTH / 2, 318, titleFont, Color.WHITE);
-        drawCentered(graphics, "素材制作平台 · 模板封面", WIDTH / 2, 408,
-                new Font(fontFamily, Font.PLAIN, 22), new Color(255, 255, 255, 210));
-        drawCentered(graphics, "COVER", WIDTH / 2, 486,
-                new Font(fontFamily, Font.BOLD, 16), new Color(255, 255, 255, 150));
-
-        graphics.dispose();
-        return image;
     }
 
     private static BufferedImage renderResult(Template template, int index) {
@@ -266,21 +237,6 @@ public final class GenDemoImages {
             graphics.setColor(new Color(0, 0, 0, 18));
             graphics.fillRoundRect(0, HEIGHT - 90, WIDTH, 90, 0, 0);
         }
-    }
-
-    private static void drawPill(Graphics2D graphics, String text, int centerX, int baselineY) {
-        Font font = new Font(fontFamily, Font.PLAIN, 20);
-        graphics.setFont(font);
-        FontMetrics metrics = graphics.getFontMetrics();
-        int paddingX = 22;
-        int width = metrics.stringWidth(text) + paddingX * 2;
-        int height = 40;
-        int x = centerX - width / 2;
-        int y = baselineY - 28;
-        graphics.setColor(new Color(255, 255, 255, 46));
-        graphics.fillRoundRect(x, y, width, height, 20, 20);
-        graphics.setColor(new Color(255, 255, 255, 235));
-        graphics.drawString(text, x + paddingX, y + 27);
     }
 
     private static void drawCentered(Graphics2D graphics, String text, int centerX, int baselineY, Font font, Color color) {

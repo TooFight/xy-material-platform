@@ -80,7 +80,7 @@ class ApiIntegrationTest {
                 .andExpect(jsonPath("$[0].title").value("旅行明信片"))
                 .andExpect(jsonPath("$[0].category.code").value("creative"))
                 .andExpect(jsonPath("$[0].category.name").value("创意图片"))
-                .andExpect(jsonPath("$[0].coverUrl").value("/demo/covers/postcard.png"))
+                .andExpect(jsonPath("$[0].coverUrl").value("/demo/covers/postcard.jpg"))
                 .andExpect(jsonPath("$[0].requiredImageCount").value(2))
                 .andExpect(jsonPath("$[0].description").doesNotExist())
                 .andExpect(jsonPath("$[6].id").value("demo-poster"));
@@ -106,7 +106,7 @@ class ApiIntegrationTest {
                 .andExpect(jsonPath("$.id").value("demo-postcard"))
                 .andExpect(jsonPath("$.title").value("旅行明信片"))
                 .andExpect(jsonPath("$.category.code").value("creative"))
-                .andExpect(jsonPath("$.coverUrl").value("/demo/covers/postcard.png"))
+                .andExpect(jsonPath("$.coverUrl").value("/demo/covers/postcard.jpg"))
                 .andExpect(jsonPath("$.description").value("上传 2 张照片，模拟生成一张旅行明信片"))
                 .andExpect(jsonPath("$.requiredImageCount").value(2))
                 .andExpect(jsonPath("$.acceptedMimeTypes", hasSize(2)))
@@ -180,9 +180,9 @@ class ApiIntegrationTest {
 
     @Test
     void demoCoverIsPubliclyServed() throws Exception {
-        mockMvc.perform(get("/demo/covers/postcard.png"))
+        mockMvc.perform(get("/demo/covers/postcard.jpg"))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.IMAGE_PNG));
+                .andExpect(content().contentType(MediaType.IMAGE_JPEG));
     }
 
     @Test

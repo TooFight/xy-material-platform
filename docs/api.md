@@ -114,7 +114,7 @@ type StageLogStatus = 'RUNNING' | 'SUCCEEDED' | 'FAILED';
     "id": "demo-postcard",
     "title": "旅行明信片",
     "category": { "code": "creative", "name": "创意图片" },
-    "coverUrl": "/demo/covers/postcard.png",
+    "coverUrl": "/demo/covers/postcard.jpg",
     "requiredImageCount": 2
   }
 ]
@@ -131,7 +131,7 @@ type StageLogStatus = 'RUNNING' | 'SUCCEEDED' | 'FAILED';
   "id": "demo-postcard",
   "title": "旅行明信片",
   "category": { "code": "creative", "name": "创意图片" },
-  "coverUrl": "/demo/covers/postcard.png",
+  "coverUrl": "/demo/covers/postcard.jpg",
   "description": "上传图片，模拟生成一张明信片",
   "requiredImageCount": 2,
   "acceptedMimeTypes": ["image/jpeg", "image/png"],
@@ -187,7 +187,7 @@ type StageLogStatus = 'RUNNING' | 'SUCCEEDED' | 'FAILED';
   "id": 42,
   "templateId": "demo-postcard",
   "templateTitle": "旅行明信片",
-  "templateCoverUrl": "/demo/covers/postcard.png",
+  "templateCoverUrl": "/demo/covers/postcard.jpg",
   "status": "FAILED",
   "stage": "GENERATING",
   "failedStage": "GENERATING",

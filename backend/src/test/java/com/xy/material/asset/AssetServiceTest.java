@@ -50,7 +50,7 @@ class AssetServiceTest {
                 "demo-postcard",
                 "旅行明信片",
                 new CategoryRef("creative", "创意图片"),
-                "/demo/covers/postcard.png",
+                "/demo/covers/postcard.jpg",
                 "上传 2 张照片，模拟生成一张旅行明信片",
                 2,
                 List.of("image/jpeg", "image/png"),

@@ -40,7 +40,7 @@ tasks 1 ──< task_stage_logs
 | category_code | VARCHAR(32) | NOT NULL, FK → template_categories.code | |
 | title | VARCHAR(64) | NOT NULL | |
 | description | VARCHAR(500) | NOT NULL | |
-| cover_url | VARCHAR(255) | NOT NULL | `/demo/covers/xxx.png` |
+| cover_url | VARCHAR(255) | NOT NULL | `/demo/covers/xxx.jpg` |
 | sample_result_path | VARCHAR(255) | NOT NULL | 示例结果图的 classpath 路径，供 FINALIZING 复制 |
 | required_image_count | INT | NOT NULL, 1–6 | |
 | accepted_mime_types | VARCHAR(128) | NOT NULL | 逗号分隔，如 `image/jpeg,image/png` |
@@ -150,5 +150,6 @@ SELECT ... FROM tasks WHERE id = #{id} AND user_id = #{userId};
 | demo-grid9 | collage 拼图海报 | 九宫格海报 | 6 | jpeg, png, webp | 2MB |
 | demo-poster | collage 拼图海报 | 双图对比海报 | 2 | jpeg, png | 5MB |
 
-- 封面图和示例结果图放在 `backend/src/main/resources/static/demo/{covers,results}/`，用脚本自行生成纯色加文字的 PNG（无版权问题）。生成方式和来源写入 README。
+- 模板封面放在 `backend/src/main/resources/static/demo/covers/`，是 7 张来自 Unsplash 的免费授权照片（540×960 竖版 JPEG，作者与原始链接见 README 素材来源）。
+- 示例结果图放在 `backend/src/main/resources/static/demo/results/`，用脚本自行生成纯色加文字的 PNG（无版权问题）。生成方式写入 README。
 - 另外在 `docs/sample-images/` 放几张可供上传测试的本地示例图片，再加一个伪造扩展名的非图片文件，用于演示类型校验。

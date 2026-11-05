@@ -149,7 +149,7 @@ class TaskApiTest {
 
         assertThat(task.templateId()).isEqualTo("demo-postcard");
         assertThat(task.templateTitle()).isEqualTo("旅行明信片");
-        assertThat(task.templateCoverUrl()).isEqualTo("/demo/covers/postcard.png");
+        assertThat(task.templateCoverUrl()).isEqualTo("/demo/covers/postcard.jpg");
         assertThat(task.status()).isEqualTo(TaskStatus.SUCCEEDED);
         assertThat(task.stage()).isEqualTo(TaskStage.FINALIZING);
         assertThat(task.failedStage()).isNull();
