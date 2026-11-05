@@ -47,6 +47,65 @@
   white-space: nowrap;
 }
 
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.refreshButton {
+  padding: 6px 12px;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.refreshButton:hover:not(:disabled) {
+  border-color: var(--color-accent);
+}
+
+.refreshButton:disabled {
+  cursor: progress;
+  opacity: 0.55;
+}
+
+.inlineError {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding: 10px 13px;
+  border: 1px solid rgba(210, 60, 30, 0.22);
+  border-radius: 12px;
+  background: rgba(242, 84, 45, 0.07);
+  color: var(--color-accent-strong);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.inlineError button {
+  flex-shrink: 0;
+  padding: 5px 10px;
+  border: 1px solid rgba(210, 60, 30, 0.3);
+  border-radius: 999px;
+  background: #fffaf8;
+  color: var(--color-accent-strong);
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.refreshing {
+  margin: 0 0 12px;
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
 .list {
   display: grid;
   gap: 16px;
@@ -155,6 +214,32 @@
 
 .primaryButton:hover {
   background: #000;
+}
+
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  margin-top: 8px;
+  padding: 9px 18px;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.secondaryButton:hover {
+  border-color: var(--color-accent);
+}
+
+.stateActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
 }
 
 .pagination {

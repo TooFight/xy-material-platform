@@ -104,6 +104,98 @@ describe("HistoryView", () => {
     expect(pageCalls).toBe(2);
   });
 
+  it("已有数据时刷新失败保留列表并显示错误提示，重试成功后恢复", async () => {
+    const user = userEvent.setup();
+    let pageCalls = 0;
+    const task = makeTask(1, { status: "SUCCEEDED", stage: "FINALIZING" });
+
+    installFetch((url) => {
+      if (url.pathname === "/api/tasks" && url.searchParams.get("active") === "true") {
+        return Promise.resolve(jsonResponse({ items: [] }));
+      }
+      if (url.pathname === "/api/tasks") {
+        pageCalls += 1;
+        if (pageCalls === 2) {
+          return Promise.resolve(
+            jsonResponse(
+              { code: "INTERNAL_ERROR", message: "刷新暂时失败" },
+              { status: 500 },
+            ),
+          );
+        }
+        return Promise.resolve(pageResponse([task], 1, 1));
+      }
+      return Promise.resolve(jsonResponse({ code: "NOT_FOUND", message: "未知接口" }, { status: 404 }));
+    });
+
+    renderHistory();
+
+    expect(await screen.findByText("共 1 个任务")).toBeInTheDocument();
+    expect(screen.getAllByText("旅行明信片").length).toBeGreaterThan(0);
+
+    await user.click(screen.getByRole("button", { name: "刷新" }));
+
+    expect(
+      await screen.findByText(/历史记录刷新失败，已保留上次结果/),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/刷新暂时失败/)).toBeInTheDocument();
+    expect(screen.getByText("共 1 个任务")).toBeInTheDocument();
+    expect(screen.getAllByText("旅行明信片").length).toBeGreaterThan(0);
+    expect(pageCalls).toBe(2);
+
+    await user.click(screen.getByRole("button", { name: "重试" }));
+
+    await waitFor(() =>
+      expect(screen.queryByText(/历史记录刷新失败/)).not.toBeInTheDocument(),
+    );
+    expect(screen.getAllByText("旅行明信片").length).toBeGreaterThan(0);
+    expect(pageCalls).toBe(3);
+  });
+
+  it("翻页失败显示整页错误，可返回上一页", async () => {
+    const user = userEvent.setup();
+    const allTasks = Array.from({ length: 25 }, (_, index) =>
+      makeTask(index + 1, {
+        status: "SUCCEEDED",
+        stage: "FINALIZING",
+        createdAt: `2026-11-04T08:${String(index).padStart(2, "0")}:00.000Z`,
+      }),
+    );
+
+    installFetch((url) => {
+      if (url.pathname === "/api/tasks" && url.searchParams.get("active") === "true") {
+        return Promise.resolve(jsonResponse({ items: [] }));
+      }
+      if (url.pathname === "/api/tasks") {
+        const page = Number(url.searchParams.get("page") ?? "1");
+        if (page === 2) {
+          return Promise.resolve(
+            jsonResponse(
+              { code: "INTERNAL_ERROR", message: "第二页加载失败" },
+              { status: 500 },
+            ),
+          );
+        }
+        return Promise.resolve(pageResponse(allTasks.slice(0, 10), 1, allTasks.length));
+      }
+      return Promise.resolve(jsonResponse({ code: "NOT_FOUND", message: "未知接口" }, { status: 404 }));
+    });
+
+    renderHistory();
+
+    expect(await screen.findByText("第 1 / 3 页")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "下一页" }));
+
+    expect(await screen.findByText("这一页加载失败")).toBeInTheDocument();
+    expect(screen.getByText("第二页加载失败")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "重试" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "返回上一页" }));
+
+    expect(await screen.findByText("第 1 / 3 页")).toBeInTheDocument();
+    expect(screen.getAllByText("旅行明信片").length).toBeGreaterThan(0);
+  });
+
   it("支持分页加载下一页", async () => {
     const user = userEvent.setup();
     const allTasks = Array.from({ length: 25 }, (_, index) =>

@@ -35,6 +35,7 @@ export interface TaskContextValue {
   retry: (taskId: number) => void;
   isRestoring: boolean;
   restoreError: ApiError | null;
+  retryRestore: () => void;
 }
 
 const TaskContext = createContext<TaskContextValue | null>(null);
@@ -60,6 +61,8 @@ export function TaskProvider({
   const [state, dispatch] = useReducer(tasksReducer, createTasksState(userId ?? 0));
   const [isRestoring, setIsRestoring] = useState(userId !== null);
   const [restoreError, setRestoreError] = useState<ApiError | null>(null);
+  const [restoreToken, setRestoreToken] = useState(0);
+  const restoreRequestIdRef = useRef(0);
   const trackerRef = useRef<TaskTracker | null>(null);
 
   const entries = useMemo(() => {
@@ -74,17 +77,24 @@ export function TaskProvider({
   );
 
   // 刷新恢复：只拉未完成任务，随后交给 tracker 继续跟踪。
+  // 每次重试递增 requestId；旧响应即使没被 abort 丢弃，也不能覆盖新一次恢复结果。
   useEffect(() => {
     if (userId === null) {
       return;
     }
 
     const controller = new AbortController();
+    const requestId = restoreRequestIdRef.current + 1;
+    restoreRequestIdRef.current = requestId;
     let active = true;
 
     listTasks({ userId, active: true, signal: controller.signal })
       .then((response) => {
-        if (!active) {
+        if (
+          !active ||
+          controller.signal.aborted ||
+          requestId !== restoreRequestIdRef.current
+        ) {
           return;
         }
         for (const task of response.items) {
@@ -94,7 +104,12 @@ export function TaskProvider({
         setRestoreError(null);
       })
       .catch((error: unknown) => {
-        if (!active || controller.signal.aborted || isAbortError(error)) {
+        if (
+          !active ||
+          controller.signal.aborted ||
+          isAbortError(error) ||
+          requestId !== restoreRequestIdRef.current
+        ) {
           return;
         }
         setRestoreError(toApiError(error));
@@ -105,7 +120,7 @@ export function TaskProvider({
       active = false;
       controller.abort();
     };
-  }, [userId]);
+  }, [userId, restoreToken]);
 
   // 一个用户对应一个 tracker；Provider 卸载/切换用户时 dispose。
   useEffect(() => {
@@ -162,6 +177,16 @@ export function TaskProvider({
     [userId],
   );
 
+  const retryRestore = useCallback(() => {
+    if (userId === null) {
+      return;
+    }
+    // 立即作废旧恢复请求；即使它在新 effect 启动前返回，也不能写入。
+    restoreRequestIdRef.current += 1;
+    setIsRestoring(true);
+    setRestoreToken((token) => token + 1);
+  }, [userId]);
+
   const value = useMemo<TaskContextValue>(
     () => ({
       entries,
@@ -172,8 +197,18 @@ export function TaskProvider({
       retry,
       isRestoring,
       restoreError,
+      retryRestore,
     }),
-    [entries, state.byId, activeCount, addTask, retry, isRestoring, restoreError],
+    [
+      entries,
+      state.byId,
+      activeCount,
+      addTask,
+      retry,
+      isRestoring,
+      restoreError,
+      retryRestore,
+    ],
   );
 
   return <TaskContext.Provider value={value}>{children}</TaskContext.Provider>;

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { SiteHeader } from "@/components/SiteHeader";
+import { RestoreBanner } from "@/components/RestoreBanner";
 import { TaskProviderBoundary } from "@/lib/tasks/TaskProvider";
 import { UserProvider } from "@/lib/user/UserProvider";
 
@@ -22,6 +23,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         <UserProvider>
           <TaskProviderBoundary>
             <SiteHeader />
+            <RestoreBanner />
             {children}
           </TaskProviderBoundary>
         </UserProvider>

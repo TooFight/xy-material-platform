@@ -15,7 +15,7 @@ const NAV_ITEMS = [
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const { activeCount } = useTasks();
+  const { activeCount, isRestoring } = useTasks();
 
   return (
     <header className={styles.header}>
@@ -50,10 +50,10 @@ export function SiteHeader() {
         </nav>
 
         <div className={styles.actions}>
-          {/* F3：显示全局未完成任务数。 */}
+          {/* F3：显示全局未完成任务数；恢复期间显示加载状态，不显示 0。 */}
           <span className={styles.taskIndicator} role="status" aria-live="polite">
             <span className={styles.pulse} aria-hidden="true" />
-            {activeCount} 个任务处理中
+            {isRestoring ? "任务加载中…" : `${activeCount} 个任务处理中`}
           </span>
           <UserSwitcher />
         </div>

@@ -32,7 +32,8 @@ function getStepState(entry: TaskEntry, index: number): StepState {
   }
 
   if (task.status === "FAILED") {
-    const failedIndex = stageIndex(task.failedStage);
+    // 兼容旧数据：failedStage 缺失时，stage 表示中断发生时所处的阶段。
+    const failedIndex = stageIndex(task.failedStage ?? task.stage);
     if (failedIndex < 0) {
       return "pending";
     }
@@ -88,6 +89,9 @@ function stageLine(entry: TaskEntry): string {
   }
   if (task.failedStage) {
     return `失败阶段：${TASK_STAGE_LABELS[task.failedStage]}`;
+  }
+  if (task.stage) {
+    return `中断于${TASK_STAGE_LABELS[task.stage]}`;
   }
   return "任务尚未开始执行。";
 }
@@ -188,7 +192,11 @@ export function TaskCard({ entry, onRetry }: TaskCardProps) {
       {task.status === "FAILED" && (
         <div className={styles.failure} role="status">
           <strong>
-            任务失败{task.failedStage ? `（${TASK_STAGE_LABELS[task.failedStage]}）` : ""}
+            {task.failedStage
+              ? `任务失败（${TASK_STAGE_LABELS[task.failedStage]}）`
+              : task.stage
+                ? `任务中断于${TASK_STAGE_LABELS[task.stage]}`
+                : "任务失败"}
           </strong>
           <p>{task.failureReason ?? "任务执行失败，请稍后重试。"}</p>
         </div>

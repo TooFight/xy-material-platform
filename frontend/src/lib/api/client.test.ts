@@ -95,4 +95,14 @@ describe("assetUrl", () => {
       "https://cdn.example.com/cover.png",
     );
   });
+
+  it("签名 URL 作为不透明字符串处理，不解析或改写查询参数", () => {
+    const signedPath =
+      "/files/results/abc.png?X-Amz-Signature=abc%2Fdef&X-Amz-Date=20261105T000000Z";
+    expect(assetUrl(signedPath)).toBe(`http://localhost:8080${signedPath}`);
+
+    const signedAbsolute =
+      "https://cdn.example.com/results/abc.png?token=a%2Fb&expires=123";
+    expect(assetUrl(signedAbsolute)).toBe(signedAbsolute);
+  });
 });

@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
+import { RestoreBanner } from "@/components/RestoreBanner";
 import { TaskProvider, useTasks } from "./TaskProvider";
 import { jsonResponse, makeTask, installFetch, deferred } from "@/test/fixtures";
 
@@ -69,8 +70,111 @@ describe("TaskProvider", () => {
     expect(screen.getByTestId("count")).toHaveTextContent("0");
   });
 
-  it("查询异常不等于任务失败：网络/503 保留 RUNNING 和 syncError，恢复后更新到 SUCCEEDED", async () => {
-    let attempts = 0;
+  it("恢复失败显示横幅，重新加载成功后开始跟踪且横幅消失", async () => {
+    let activeAttempts = 0;
+    installFetch((url) => {
+      if (url.pathname === "/api/tasks" && url.searchParams.get("active") === "true") {
+        activeAttempts += 1;
+        if (activeAttempts === 1) {
+          return Promise.resolve(
+            jsonResponse(
+              { code: "INTERNAL_ERROR", message: "恢复服务暂时不可用" },
+              { status: 503 },
+            ),
+          );
+        }
+        return Promise.resolve(jsonResponse({ items: [running] }));
+      }
+      if (url.pathname === "/api/tasks/1") {
+        return Promise.resolve(jsonResponse(succeeded));
+      }
+      return Promise.resolve(jsonResponse({ code: "NOT_FOUND", message: "未知接口" }, { status: 404 }));
+    });
+
+    render(
+      <TaskProvider userId={1} intervalMs={20}>
+        <RestoreBanner />
+        <Probe />
+      </TaskProvider>,
+    );
+
+    expect(
+      await screen.findByText("未完成任务恢复失败：恢复服务暂时不可用"),
+    ).toBeInTheDocument();
+    expect(screen.getByTestId("restoring")).toHaveTextContent("ready");
+
+    fireEvent.click(screen.getByRole("button", { name: "重新加载" }));
+    expect(screen.getByTestId("restoring")).toHaveTextContent("restoring");
+    expect(screen.getByRole("button", { name: "重新加载中…" })).toBeDisabled();
+
+    await waitFor(() =>
+      expect(screen.queryByText(/未完成任务恢复失败/)).not.toBeInTheDocument(),
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId("task-1")).toHaveTextContent("SUCCEEDED"),
+    );
+    expect(activeAttempts).toBe(2);
+  });
+
+  it("切换用户后旧用户迟到的恢复响应被丢弃", async () => {
+    const oldRestore = deferred<Response>();
+    const task1 = makeTask(1, {
+      status: "PENDING",
+      createdAt: "2026-11-04T08:30:00.000Z",
+    });
+    const task2 = makeTask(2, {
+      status: "PENDING",
+      createdAt: "2026-11-04T09:00:00.000Z",
+    });
+    const task2Done = makeTask(2, {
+      status: "SUCCEEDED",
+      stage: "FINALIZING",
+      resultUrl: "/files/results/2.png",
+      createdAt: "2026-11-04T09:00:00.000Z",
+    });
+    let oldRestoreCalled = false;
+
+    installFetch((url, init) => {
+      const requestedUser = new Headers(init?.headers).get("X-User-Id");
+      if (url.pathname === "/api/tasks" && url.searchParams.get("active") === "true") {
+        if (requestedUser === "1") {
+          oldRestoreCalled = true;
+          return oldRestore.promise;
+        }
+        return Promise.resolve(jsonResponse({ items: [task2] }));
+      }
+      if (url.pathname === "/api/tasks/2") {
+        return Promise.resolve(jsonResponse(task2Done));
+      }
+      return Promise.resolve(jsonResponse({ code: "NOT_FOUND", message: "未知接口" }, { status: 404 }));
+    });
+
+    const { rerender } = render(
+      <TaskProvider userId={1} intervalMs={20}>
+        <RestoreBanner />
+        <Probe />
+      </TaskProvider>,
+    );
+    await waitFor(() => expect(oldRestoreCalled).toBe(true));
+
+    rerender(
+      <TaskProvider key={2} userId={2} intervalMs={20}>
+        <RestoreBanner />
+        <Probe />
+      </TaskProvider>,
+    );
+    await waitFor(() =>
+      expect(screen.getByTestId("task-2")).toHaveTextContent("SUCCEEDED"),
+    );
+
+    oldRestore.resolve(jsonResponse({ items: [task1] }));
+    await new Promise((resolve) => setTimeout(resolve, 40));
+
+    expect(screen.queryByTestId("task-1")).not.toBeInTheDocument();
+    expect(screen.getByTestId("task-2")).toHaveTextContent("SUCCEEDED");
+  });
+
+  it("查询异常不等于任务失败：网络/503 保留 RUNNING 和 syncError，恢复后更新到 SUCCEEDED", async () => {    let attempts = 0;
     installFetch((url) => {
       if (url.pathname === "/api/tasks" && url.searchParams.get("active") === "true") {
         return Promise.resolve(jsonResponse({ items: [running] }));
