@@ -10,21 +10,25 @@
 
 不做：真实 AI、模板 CRUD 后台、登录密码/第三方账号、服务重启后自动续跑、重新制作/下载/删除。
 
-## 2. 技术选型（计划版本）
+## 2. 技术选型（实际锁定版本）
 
-| 层 | 选型 | 计划版本 | 说明 |
+> 实现完成后以 `backend/pom.xml`、`frontend/package.json` 和 `frontend/package-lock.json` 为准；
+> 原计划中的 Next.js 15.x 在实现时使用当时的稳定版 16.4.5，Spring Boot 锁定 3.5.16。
+
+| 层 | 选型 | 锁定版本 | 说明 |
 |---|---|---|---|
-| 前端运行时 | Node.js | 22 LTS | Docker 与 CI 统一 |
-| 前端框架 | Next.js (App Router) | 15.x | 生成脚手架时锁定具体小版本，写入 README |
-| UI 库 | React | 19.x | 与 Next.js 15 配套 |
-| 语言 | TypeScript | 5.x | `strict: true` |
-| 前端测试 | Vitest + Testing Library | 最新稳定版 | 用假定时器测轮询逻辑 |
-| 后端语言 | Java | 21 (LTS) | |
-| 后端框架 | Spring Boot | 3.5.x | |
-| ORM | mybatis-spring-boot-starter | 3.0.x | 3.0.x 对应 Spring Boot 3.x |
-| 数据库 | MySQL | 8.4 LTS | |
-| 后端测试 | JUnit 5 + Spring Boot Test + H2（MySQL 模式） | 随 Boot BOM | 详见 §9 |
-| 构建 | Maven Wrapper (`./mvnw`)、npm（`package-lock.json`） | | |
+| 前端运行时 | Node.js | 22 | Docker `node:22-alpine`、CI `node-version: 22`、`.nvmrc` 22；`package.json` 要求 `>=22.13.0` |
+| 前端框架 | Next.js (App Router) | 16.4.5 | `output: 'standalone'` |
+| UI 库 | React | 19.3.0 | `react-dom` 同为 19.3.0 |
+| 语言 | TypeScript | 5.9.3 | `strict: true` |
+| 前端测试 | Vitest + Testing Library + jsdom | 5.1.0 / 16.3.3 / 29.1.1 | 用假定时器测轮询逻辑 |
+| 后端语言 | Java | 21 (LTS) | Docker / CI 使用 Temurin 21 |
+| 后端框架 | Spring Boot | 3.5.16 | |
+| ORM | mybatis-spring-boot-starter | 3.0.5 | 3.0.x 对应 Spring Boot 3.x |
+| 数据库 | MySQL | 8.4 LTS | Compose 镜像 `mysql:8.4` |
+| JDBC 驱动 | mysql-connector-j | 9.7.0 | 与 MySQL 8.4 兼容 |
+| 后端测试 | JUnit 5 + Spring Boot Test + H2（MySQL 模式） | H2 2.3.232 | 详见 §9 |
+| 构建 | Maven Wrapper (`./mvnw`)、npm（`package-lock.json`，lockfileVersion 3） | Maven 3.9.14 | Wrapper 版本见 `backend/.mvn/wrapper/maven-wrapper.properties` |
 
 样式选 CSS Modules（不引 UI 组件库，减少依赖和版本兼容问题）。客户端状态用 React Context + `useReducer`，不引 Redux/Zustand。
 
@@ -229,7 +233,7 @@ state = { userId, byId: Record<number, TrackedTask>, order: number[] }
 
 轮询调度（`taskTracker`）：
 
-- 只跟踪 `PENDING/RUNNING` 且没有 `paused` 的任务。每隔 1.5s 对这些任务逐个执行 `GET /api/tasks/{id}`，每个请求都有自己的 `AbortController`。
+- 只跟踪 `PENDING/RUNNING` 且没有 `paused` 的任务。每隔 1.5s 对每个未完成任务各发一个 `GET /api/tasks/{id}`（同一轮并发发出，每个请求有自己的 `AbortController`）。
 - 上一轮请求全部完成后才安排下一轮（`setTimeout` 链，而不是 `setInterval`），避免请求堆积。
 - 任务进入终态后不再请求它；没有需要跟踪的任务时不安排定时器。有新任务加入时重新启动。
 - 连续 3 次查询失败后暂停该任务的自动跟踪。界面显示“状态暂时无法获取，已保留上次结果”，并提供“重新查询”按钮。
@@ -262,21 +266,25 @@ state = { userId, byId: Record<number, TrackedTask>, order: number[] }
 
 ## 10. 配置与部署
 
-### 10.1 配置项（写入 `.env.example`，不包含真实凭据）
+### 10.1 配置项（`.env.example` 为 Compose 示例；本地可用环境变量覆盖）
 
 | 变量 | 使用方 | 示例 |
 |---|---|---|
+| `SERVER_PORT` | backend | `8080` |
 | `MYSQL_DATABASE` / `MYSQL_USER` / `MYSQL_PASSWORD` / `MYSQL_ROOT_PASSWORD` | mysql | `xy_material` / `xy` / `change-me` / `change-me-root` |
 | `SPRING_DATASOURCE_URL` | backend | `jdbc:mysql://mysql:3306/xy_material?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC` |
 | `SPRING_DATASOURCE_USERNAME` / `SPRING_DATASOURCE_PASSWORD` | backend | 同上 |
+| `SPRING_DATASOURCE_POOL_SIZE` | backend | `10` |
 | `APP_STORAGE_DIR` | backend | `/data/uploads` |
 | `APP_CORS_ALLOWED_ORIGINS` | backend | `http://localhost:3000` |
 | `APP_SIMULATION_*` | backend | 见 §6.4 |
+| `APP_TASK_EXECUTOR_CORE_SIZE` / `APP_TASK_EXECUTOR_MAX_SIZE` / `APP_TASK_EXECUTOR_QUEUE_CAPACITY` | backend | `2` / `2` / `100` |
+| `APP_FILES_SIGNING_SECRET` | backend | 未配置时启动随机生成；配置后签名 URL 跨重启稳定 |
 | `NEXT_PUBLIC_API_BASE_URL` | frontend（构建时） | `http://localhost:8080` |
 
 ### 10.2 数据库初始化
 
-使用 `backend/src/main/resources/db/schema.sql` 和 `data.sql`，由 Spring `spring.sql.init.mode=always` 在启动时执行。脚本是幂等的（`CREATE TABLE IF NOT EXISTS`；种子数据按主键先删除再插入，或使用 `INSERT IGNORE`），本地和 Compose 走同一条初始化路径。
+使用 `backend/src/main/resources/db/schema.sql` 和 `data.sql`，由 Spring `spring.sql.init.mode=always` 在启动时执行。脚本是幂等的（`CREATE TABLE IF NOT EXISTS`；种子数据使用 `ON DUPLICATE KEY UPDATE`，重复执行不报错；已有行只刷新模板的 `cover_url`，其余字段不覆盖），本地和 Compose 走同一条初始化路径。
 
 ### 10.3 Docker Compose（R-14）
 
